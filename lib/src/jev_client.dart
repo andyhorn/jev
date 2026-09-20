@@ -7,7 +7,6 @@ import 'package:http/http.dart' as http;
 import 'jev_exception.dart';
 import 'models/request.dart';
 import 'models/response.dart';
-import 'models/question.dart';
 import 'retry_policy.dart';
 
 /// A client for the TypeSafe AI System One API.
@@ -65,27 +64,12 @@ class JevClient {
     );
   }
 
-  /// Asks [questions] about [state] using [model], returning the parsed
-  /// [SystemOneResponse].
-  Future<SystemOneResponse> systemOne({
-    required Object state,
-    required Map<String, Question> questions,
-    String model = JevModel.latest,
-  }) {
-    final request = SystemOneRequest(
-      state: state,
-      model: model,
-      questions: questions,
-    );
-    return systemOneRaw(request);
-  }
-
   /// Sends [request] to `POST /v1/systemone` and returns the parsed
   /// [SystemOneResponse].
   ///
   /// Retries according to the configured [RetryPolicy] on retryable HTTP
   /// status codes and on connection/timeout failures.
-  Future<SystemOneResponse> systemOneRaw(SystemOneRequest request) async {
+  Future<SystemOneResponse> systemOne(SystemOneRequest request) async {
     final uri = _baseUrl.resolve('/v1/systemone');
     final body = utf8.encode(jsonEncode(request.toJson()));
     final headers = {

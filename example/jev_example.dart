@@ -16,24 +16,26 @@ Future<void> main() async {
 
   try {
     final response = await client.systemOne(
-      state:
-          "Hi, I've been trying to connect my Stripe account for two days "
-          "and keep getting a 500 error. This is urgent, I'm losing sales.",
-      questions: {
-        'urgency': NoulQuestion('Does this message express urgency?'),
-        'department': ChoiceQuestion(
-          'Which department should handle this?',
-          criteria: {
-            'returns': null,
-            'shipping': 'Delivery delays, tracking, lost packages',
-            'billing': 'Payment issues, invoices, refunds',
-          },
-        ),
-        'severity': ScoreQuestion(
-          'Rate the severity of this issue',
-          criteria: ['cosmetic', 'workaround', 'blocking'],
-        ),
-      },
+      SystemOneRequest(
+        state:
+            "Hi, I've been trying to connect my Stripe account for two days "
+            "and keep getting a 500 error. This is urgent, I'm losing sales.",
+        questions: {
+          'urgency': NoulQuestion('Does this message express urgency?'),
+          'department': ChoiceQuestion(
+            'Which department should handle this?',
+            criteria: {
+              'returns': null,
+              'shipping': 'Delivery delays, tracking, lost packages',
+              'billing': 'Payment issues, invoices, refunds',
+            },
+          ),
+          'severity': ScoreQuestion(
+            'Rate the severity of this issue',
+            criteria: ['cosmetic', 'workaround', 'blocking'],
+          ),
+        },
+      ),
     );
 
     for (final entry in response.answers.entries) {

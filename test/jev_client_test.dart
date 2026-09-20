@@ -49,8 +49,10 @@ void main() {
         final client = JevClient(apiKey: 'test-key', httpClient: mockClient);
 
         final response = await client.systemOne(
-          state: 'Please refund my order immediately!',
-          questions: {'urgency': NoulQuestion('Does this express urgency?')},
+          SystemOneRequest(
+            state: 'Please refund my order immediately!',
+            questions: {'urgency': NoulQuestion('Does this express urgency?')},
+          ),
         );
 
         expect(capturedRequest, isNotNull);
@@ -100,7 +102,7 @@ void main() {
         retryPolicy: RetryPolicy.none,
       );
       try {
-        await client.systemOne(state: 's', questions: {});
+        await client.systemOne(SystemOneRequest(state: 's', questions: {}));
         fail('expected an exception');
       } on JevApiException catch (e) {
         return e;
@@ -240,7 +242,9 @@ void main() {
         ),
       );
 
-      final response = await client.systemOne(state: 's', questions: {});
+      final response = await client.systemOne(
+        SystemOneRequest(state: 's', questions: {}),
+      );
 
       expect(callCount, 2);
       expect(response.model, 'jev-1.13.0');
@@ -263,7 +267,7 @@ void main() {
       );
 
       await expectLater(
-        client.systemOne(state: 's', questions: {}),
+        client.systemOne(SystemOneRequest(state: 's', questions: {})),
         throwsA(isA<JevServerException>()),
       );
       expect(callCount, 2);
@@ -286,7 +290,7 @@ void main() {
       );
 
       await expectLater(
-        client.systemOne(state: 's', questions: {}),
+        client.systemOne(SystemOneRequest(state: 's', questions: {})),
         throwsA(isA<JevBadRequestException>()),
       );
       expect(callCount, 1);
@@ -327,7 +331,7 @@ void main() {
         final client = JevClient(apiKey: 'k', httpClient: mockClient);
 
         await expectLater(
-          client.systemOne(state: 's', questions: {}),
+          client.systemOne(SystemOneRequest(state: 's', questions: {})),
           throwsA(
             isA<JevResponseFormatException>().having(
               (e) => e.rawBody,
