@@ -2,7 +2,7 @@ name: jev
 description: An unofficial Dart client for the TypeSafe AI System One (Jev) API.
 version: 0.1.0
 publish_to: none
-# repository: https://github.com/my_org/my_repo
+repository: https://github.com/andyhorn/jev
 
 environment:
   sdk: ^3.13.2
