@@ -26,15 +26,17 @@ Then ask one or more named questions about some `state`:
 
 ```dart
 final response = await client.systemOne(
-  state: "Hi, I've been trying to connect my Stripe account for two days "
-      "and keep getting a 500 error. This is urgent, I'm losing sales.",
-  questions: {
-    'urgency': NoulQuestion('Does this message express urgency?'),
-    'severity': ScoreQuestion(
-      'Rate the severity of this issue',
-      criteria: ['cosmetic', 'workaround', 'blocking'],
-    ),
-  },
+  SystemOneRequest(
+    state: "Hi, I've been trying to connect my Stripe account for two days "
+        "and keep getting a 500 error. This is urgent, I'm losing sales.",
+    questions: {
+      'urgency': NoulQuestion('Does this message express urgency?'),
+      'severity': ScoreQuestion(
+        'Rate the severity of this issue',
+        criteria: ['cosmetic', 'workaround', 'blocking'],
+      ),
+    },
+  ),
 );
 
 for (final entry in response.answers.entries) {
