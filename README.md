@@ -50,22 +50,42 @@ See `example/jev_example.dart` for a fuller, runnable example that
 demonstrates all three question types (`NoulQuestion`, `ChoiceQuestion`,
 `ScoreQuestion`) and exhaustive pattern matching over the `Answer` types.
 
+## Handling answers
+
+`Answer` is a sealed class with three subtypes — `NoulAnswer`,
+`ChoiceAnswer`, and `ScoreAnswer` — so a `switch` over an `Answer` is  
+exhaustive.
+
+```dart
+for (final entry in response.answers.entries) {
+  final message = switch (entry.value) {
+    NoulAnswer(:final noul) => noul >= 0.5 ? 'yes' : 'no ($noul)',
+    ChoiceAnswer(:final choice, :final confidence) =>
+      '$choice (confidence=$confidence)',
+    ScoreAnswer(:final score, :final mostLikelyDescription) =>
+      '$score ($mostLikelyDescription)',
+  };
+  print('${entry.key}: $message');
+}
+```
+
 ## Known limitations and assumptions
 
 These follow from the shape of the underlying API, not from missing client
 functionality:
 
 - **No streaming support.** The System One API does not offer a streaming
-  response mode, so neither does this client.
+response mode, so neither does this client.
 - **No batch endpoint.** There is no bulk/batch request API — submit
-  multiple named questions in a single `systemOne` call instead.
+multiple named questions in a single `systemOne` call instead.
 - **Single-shot only.** The API has no server-side session or conversation
-  state. If you need multi-turn context, include the prior conversation
-  inside `state` yourself.
+state. If you need multi-turn context, include the prior conversation
+inside `state` yourself.
 - **Per-request timeout only.** The `timeout` passed to `JevClient` applies
-  to each individual HTTP attempt, not to the total wall-clock time across
-  all retries performed by the configured `RetryPolicy`.
+to each individual HTTP attempt, not to the total wall-clock time across
+all retries performed by the configured `RetryPolicy`.
 - **`JevApiException.body` is untyped.** The exact JSON schema of an error
-  response body is undocumented by TypeSafe AI, so `body` is deliberately
-  left as `Object?` rather than a typed model — treat it as best-effort
-  diagnostic information, not a stable contract.
+response body is undocumented by TypeSafe AI, so `body` is deliberately
+left as `Object?` rather than a typed model — treat it as best-effort
+diagnostic information, not a stable contract.
+
