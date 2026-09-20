@@ -11,6 +11,22 @@ import 'package:jev/src/models/request.dart';
 import 'package:jev/src/retry_policy.dart';
 import 'package:test/test.dart';
 
+class _SpyHttpClient extends http.BaseClient {
+  final http.Client _inner = http.Client();
+  bool closed = false;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    return _inner.send(request);
+  }
+
+  @override
+  void close() {
+    closed = true;
+    _inner.close();
+  }
+}
+
 const _quickstartJson = {
   'model': 'jev-1.13.0',
   'answers': {
@@ -287,6 +303,17 @@ void main() {
           ? 'TYPESAFE_API_KEY is set in this environment'
           : null,
     );
+  });
+
+  group('JevClient.close', () {
+    test('does not close a caller-supplied http.Client', () {
+      final spy = _SpyHttpClient();
+      final client = JevClient(apiKey: 'k', httpClient: spy);
+
+      client.close();
+
+      expect(spy.closed, isFalse);
+    });
   });
 
   group('JevClient response parsing failures', () {
