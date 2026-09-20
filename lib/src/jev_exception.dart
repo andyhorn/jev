@@ -111,8 +111,8 @@ final class JevOverloadedException extends JevApiException {
   });
 }
 
-/// An unmapped server-side error: any other 5xx status code, or a request
-/// timeout (HTTP 408) reported by the server itself.
+/// The fallback for any HTTP status code not explicitly mapped, which in
+/// practice is typically any other 5xx status code or a request timeout (HTTP 408).
 final class JevServerException extends JevApiException {
   JevServerException({
     required super.statusCode,
