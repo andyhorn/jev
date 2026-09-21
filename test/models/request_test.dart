@@ -1,11 +1,14 @@
 import 'package:jev/src/models/question.dart';
 import 'package:jev/src/models/request.dart';
+import 'package:jev/src/models/state.dart';
 import 'package:test/test.dart';
 
 void main() {
   test('toJson produces the full request envelope shape', () {
     final request = SystemOneRequest(
-      state: "Hi, I've been trying to connect my Stripe account...",
+      state: JevState.text(
+        "Hi, I've been trying to connect my Stripe account...",
+      ),
       questions: {
         'urgency': NoulQuestion('Does this message express urgency?'),
         'department': ChoiceQuestion(
@@ -53,7 +56,7 @@ void main() {
 
   test('defaults model to jev-latest when not specified', () {
     final request = SystemOneRequest(
-      state: 'some state',
+      state: JevState.text('some state'),
       questions: {'urgency': NoulQuestion('Is this urgent?')},
     );
 
@@ -63,7 +66,7 @@ void main() {
 
   test('allows overriding the model', () {
     final request = SystemOneRequest(
-      state: 'some state',
+      state: JevState.text('some state'),
       model: JevModel.preview,
       questions: {'urgency': NoulQuestion('Is this urgent?')},
     );

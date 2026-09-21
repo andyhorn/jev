@@ -8,6 +8,7 @@ import 'package:jev/src/jev_exception.dart';
 import 'package:jev/src/models/answer.dart';
 import 'package:jev/src/models/question.dart';
 import 'package:jev/src/models/request.dart';
+import 'package:jev/src/models/state.dart';
 import 'package:jev/src/retry_policy.dart';
 import 'package:test/test.dart';
 
@@ -50,7 +51,7 @@ void main() {
 
         final response = await client.systemOne(
           SystemOneRequest(
-            state: 'Please refund my order immediately!',
+            state: JevState.text('Please refund my order immediately!'),
             questions: {'urgency': NoulQuestion('Does this express urgency?')},
           ),
         );
@@ -102,7 +103,9 @@ void main() {
         retryPolicy: RetryPolicy.none,
       );
       try {
-        await client.systemOne(SystemOneRequest(state: 's', questions: {}));
+        await client.systemOne(
+          SystemOneRequest(state: JevState.text('s'), questions: {}),
+        );
         fail('expected an exception');
       } on JevApiException catch (e) {
         return e;
@@ -243,7 +246,7 @@ void main() {
       );
 
       final response = await client.systemOne(
-        SystemOneRequest(state: 's', questions: {}),
+        SystemOneRequest(state: JevState.text('s'), questions: {}),
       );
 
       expect(callCount, 2);
@@ -267,7 +270,9 @@ void main() {
       );
 
       await expectLater(
-        client.systemOne(SystemOneRequest(state: 's', questions: {})),
+        client.systemOne(
+          SystemOneRequest(state: JevState.text('s'), questions: {}),
+        ),
         throwsA(isA<JevServerException>()),
       );
       expect(callCount, 2);
@@ -290,7 +295,9 @@ void main() {
       );
 
       await expectLater(
-        client.systemOne(SystemOneRequest(state: 's', questions: {})),
+        client.systemOne(
+          SystemOneRequest(state: JevState.text('s'), questions: {}),
+        ),
         throwsA(isA<JevBadRequestException>()),
       );
       expect(callCount, 1);
@@ -331,7 +338,9 @@ void main() {
         final client = JevClient(apiKey: 'k', httpClient: mockClient);
 
         await expectLater(
-          client.systemOne(SystemOneRequest(state: 's', questions: {})),
+          client.systemOne(
+            SystemOneRequest(state: JevState.text('s'), questions: {}),
+          ),
           throwsA(
             isA<JevResponseFormatException>().having(
               (e) => e.rawBody,

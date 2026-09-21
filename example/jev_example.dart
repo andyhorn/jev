@@ -17,9 +17,10 @@ Future<void> main() async {
   try {
     final response = await client.systemOne(
       SystemOneRequest(
-        state:
-            "Hi, I've been trying to connect my Stripe account for two days "
-            "and keep getting a 500 error. This is urgent, I'm losing sales.",
+        state: JevState.text(
+          "Hi, I've been trying to connect my Stripe account for two days "
+          "and keep getting a 500 error. This is urgent, I'm losing sales.",
+        ),
         questions: {
           'urgency': NoulQuestion('Does this message express urgency?'),
           'department': ChoiceQuestion(

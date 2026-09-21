@@ -27,8 +27,10 @@ Then ask one or more named questions about some `state`:
 ```dart
 final response = await client.systemOne(
   SystemOneRequest(
-    state: "Hi, I've been trying to connect my Stripe account for two days "
-        "and keep getting a 500 error. This is urgent, I'm losing sales.",
+    state: JevState.text(
+      "Hi, I've been trying to connect my Stripe account for two days "
+      "and keep getting a 500 error. This is urgent, I'm losing sales.",
+    ),
     questions: {
       'urgency': NoulQuestion('Does this message express urgency?'),
       'severity': ScoreQuestion(
@@ -45,6 +47,8 @@ for (final entry in response.answers.entries) {
 
 client.close();
 ```
+
+`state` accepts a `JevState` — use `JevState.text(...)` for plain text, `.object(...)` for structured data, or `.array(...)` for sequences.
 
 See `example/jev_example.dart` for a fuller, runnable example that
 demonstrates all three question types (`NoulQuestion`, `ChoiceQuestion`,
