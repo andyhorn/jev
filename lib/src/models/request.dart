@@ -1,4 +1,5 @@
 import 'question.dart';
+import 'state.dart';
 
 /// The model aliases known to be accepted by the System One API.
 ///
@@ -13,9 +14,7 @@ abstract final class JevModel {
 /// named [questions] to ask about it.
 class SystemOneRequest {
   /// The content to evaluate.
-  ///
-  /// May be a `String`, `Map`, or `List`.
-  final Object state;
+  final JevState state;
 
   /// The model alias to use, e.g. [JevModel.latest].
   final String model;
@@ -32,7 +31,7 @@ class SystemOneRequest {
   /// Serializes this request into its wire-format JSON representation.
   Map<String, Object?> toJson() {
     return {
-      'state': state,
+      'state': state.toJson(),
       'model': model,
       'questions': questions.map(
         (name, question) => MapEntry(name, question.toJson()),
