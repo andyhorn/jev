@@ -50,6 +50,19 @@ See `example/jev_example.dart` for a fuller, runnable example that
 demonstrates all three question types (`NoulQuestion`, `ChoiceQuestion`,
 `ScoreQuestion`) and exhaustive pattern matching over the `Answer` types.
 
+## AI agent skill
+
+TypeSafe publishes an [agent skill](https://github.com/typesafe-ai/skills)
+with guidance for building with the System One API. Install it for your own
+coding agent with [skills.sh](https://skills.sh):
+
+```bash
+npx skills add typesafe-ai/skills --skill typesafe-ai
+```
+
+You'll be prompted to select your agent. See `AGENTS.md` for how it applies
+to this repo specifically.
+
 ## Handling answers
 
 `Answer` is a sealed class with three subtypes — `NoulAnswer`,
