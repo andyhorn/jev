@@ -50,6 +50,18 @@ See `example/jev_example.dart` for a fuller, runnable example that
 demonstrates all three question types (`NoulQuestion`, `ChoiceQuestion`,
 `ScoreQuestion`) and exhaustive pattern matching over the `Answer` types.
 
+## AI agent skill
+
+This repo ships the [TypeSafe AI agent skill](.claude/skills/typesafe-ai/SKILL.md)
+for Claude Code. If you use a different coding agent, install it for your own
+tool with [skills.sh](https://skills.sh):
+
+```bash
+npx skills add typesafe-ai/skills --skill typesafe-ai
+```
+
+You'll be prompted to select your agent.
+
 ## Handling answers
 
 `Answer` is a sealed class with three subtypes — `NoulAnswer`,
