@@ -3,9 +3,10 @@
 This package is an unofficial **Dart client** for TypeSafe AI's System One
 ("Jev") API — see `README.md` for usage.
 
-The vendored [TypeSafe agent skill](.claude/skills/typesafe-ai/SKILL.md)
-(and its docs.typesafe.ai links) describe the HTTP API, Python SDK, and
-JavaScript SDK. When working in *this* repo:
+If you have the [TypeSafe agent skill](https://github.com/typesafe-ai/skills)
+installed (see `README.md`), note that it (and its docs.typesafe.ai links)
+describe the HTTP API, Python SDK, and JavaScript SDK. When working in
+*this* repo:
 
 - Building a feature that calls the API from Dart/Flutter code → use
   `package:jev` (`JevClient`, `SystemOneRequest`, `NoulQuestion`,

@@ -52,15 +52,16 @@ demonstrates all three question types (`NoulQuestion`, `ChoiceQuestion`,
 
 ## AI agent skill
 
-This repo ships the [TypeSafe AI agent skill](.claude/skills/typesafe-ai/SKILL.md)
-for Claude Code. If you use a different coding agent, install it for your own
-tool with [skills.sh](https://skills.sh):
+TypeSafe publishes an [agent skill](https://github.com/typesafe-ai/skills)
+with guidance for building with the System One API. Install it for your own
+coding agent with [skills.sh](https://skills.sh):
 
 ```bash
 npx skills add typesafe-ai/skills --skill typesafe-ai
 ```
 
-You'll be prompted to select your agent.
+You'll be prompted to select your agent. See `AGENTS.md` for how it applies
+to this repo specifically.
 
 ## Handling answers
 
