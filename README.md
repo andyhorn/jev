@@ -9,6 +9,20 @@ endorsed by, or supported by TypeSafe AI, and it is not published to pub.dev
 (`publish_to: none` in `pubspec.yaml`) — pull it directly from this
 repository if you want to use it.
 
+## Intended for backend use
+
+`JevClient` holds your System One API key and sends it on every request, so
+it's meant to run on a server or in a cloud function — never shipped inside a
+distributed frontend build, where the key would be extractable. It also uses
+`dart:io` (`Platform.environment` in `JevClient.fromEnvironment()`), so it
+won't compile for web targets at all.
+
+Using it directly from a Flutter app for local testing/prototyping is fine;
+just don't ship an app built against it, and don't rely on it for a web
+target. For production, have your backend build the request, call
+`JevClient`, and hand the frontend its own domain-specific result rather than
+raw `SystemOneRequest`/`Answer` types.
+
 ## Getting started
 
 You'll need a System One API key. Either set it in the `TYPESAFE_API_KEY`
