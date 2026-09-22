@@ -9,6 +9,8 @@ sealed class JevState {
   const factory JevState.text(String value) = JevStateText;
 
   /// Structured content, e.g. named fields or a record.
+  ///
+  /// This is the recommended shape for `state`.
   const factory JevState.object(Map<String, dynamic> value) = JevStateObject;
 
   /// A sequence of content, e.g. a chat log.
