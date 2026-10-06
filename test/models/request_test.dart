@@ -9,6 +9,7 @@ void main() {
       state: SystemOneState.text(
         "Hi, I've been trying to connect my Stripe account...",
       ),
+      model: 'jev-latest',
       questions: {
         'urgency': NoulQuestion('Does this message express urgency?'),
         'department': ChoiceQuestion(
@@ -54,20 +55,21 @@ void main() {
     });
   });
 
-  test('defaults model to jev-latest when not specified', () {
+  test('serializes the explicit model', () {
     final request = SystemOneRequest(
       state: SystemOneState.text('some state'),
+      model: 'jev-latest',
       questions: {'urgency': NoulQuestion('Is this urgent?')},
     );
 
-    expect(request.model, JevModel.latest);
+    expect(request.model, 'jev-latest');
     expect(request.toJson()['model'], 'jev-latest');
   });
 
   test('allows overriding the model', () {
     final request = SystemOneRequest(
       state: SystemOneState.text('some state'),
-      model: JevModel.preview,
+      model: 'jev-preview',
       questions: {'urgency': NoulQuestion('Is this urgent?')},
     );
 

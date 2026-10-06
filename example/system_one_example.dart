@@ -21,6 +21,7 @@ Future<void> main() async {
           "Hi, I've been trying to connect my Stripe account for two days "
           "and keep getting a 500 error. This is urgent, I'm losing sales.",
         ),
+        model: 'jev-latest',
         questions: {
           'urgency': NoulQuestion('Does this message express urgency?'),
           'department': ChoiceQuestion(

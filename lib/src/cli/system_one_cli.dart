@@ -55,9 +55,14 @@ Future<int> runSystemOne(
       return _exitOk;
     }
 
+    final model = args.option('model');
+    if (model == null || model.isEmpty) {
+      throw _UsageError('Missing required option --model.');
+    }
+
     final request = SystemOneRequest(
       state: await _readState(args, stdin),
-      model: args.option('model')!,
+      model: model,
       questions: await _readQuestions(args),
     );
 
@@ -132,8 +137,10 @@ ArgParser _buildParser() {
     ..addOption(
       'model',
       abbr: 'm',
-      defaultsTo: JevModel.latest,
-      help: 'The model alias to use.',
+      valueHelp: 'name',
+      help:
+          'The model to use (required), e.g. jev-latest for '
+          'TypeSafe or nimble for Ollama.',
     )
     ..addOption(
       'base-url',

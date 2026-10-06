@@ -54,6 +54,7 @@ void main() {
         final response = await client.systemOne(
           SystemOneRequest(
             state: SystemOneState.text('Please refund my order immediately!'),
+            model: 'jev-latest',
             questions: {'urgency': NoulQuestion('Does this express urgency?')},
           ),
         );
@@ -73,7 +74,7 @@ void main() {
         final sentBody =
             jsonDecode(capturedRequest!.body) as Map<String, dynamic>;
         expect(sentBody['state'], 'Please refund my order immediately!');
-        expect(sentBody['model'], JevModel.latest);
+        expect(sentBody['model'], 'jev-latest');
         expect(sentBody['questions'], {
           'urgency': {
             'type': 'noul',
@@ -98,7 +99,11 @@ void main() {
 
       final client = SystemOneClient(httpClient: mockClient);
       await client.systemOne(
-        SystemOneRequest(state: SystemOneState.text('s'), questions: {}),
+        SystemOneRequest(
+          state: SystemOneState.text('s'),
+          model: 'jev-latest',
+          questions: {},
+        ),
       );
 
       expect(capturedRequest!.headers.containsKey('Authorization'), isFalse);
@@ -121,7 +126,11 @@ void main() {
       );
       try {
         await client.systemOne(
-          SystemOneRequest(state: SystemOneState.text('s'), questions: {}),
+          SystemOneRequest(
+            state: SystemOneState.text('s'),
+            model: 'jev-latest',
+            questions: {},
+          ),
         );
         fail('expected an exception');
       } on SystemOneApiException catch (e) {
@@ -263,7 +272,11 @@ void main() {
       );
 
       final response = await client.systemOne(
-        SystemOneRequest(state: SystemOneState.text('s'), questions: {}),
+        SystemOneRequest(
+          state: SystemOneState.text('s'),
+          model: 'jev-latest',
+          questions: {},
+        ),
       );
 
       expect(callCount, 2);
@@ -288,7 +301,11 @@ void main() {
 
       await expectLater(
         client.systemOne(
-          SystemOneRequest(state: SystemOneState.text('s'), questions: {}),
+          SystemOneRequest(
+            state: SystemOneState.text('s'),
+            model: 'jev-latest',
+            questions: {},
+          ),
         ),
         throwsA(isA<SystemOneServerException>()),
       );
@@ -313,7 +330,11 @@ void main() {
 
       await expectLater(
         client.systemOne(
-          SystemOneRequest(state: SystemOneState.text('s'), questions: {}),
+          SystemOneRequest(
+            state: SystemOneState.text('s'),
+            model: 'jev-latest',
+            questions: {},
+          ),
         ),
         throwsA(isA<SystemOneBadRequestException>()),
       );
@@ -337,7 +358,11 @@ void main() {
         httpClient: mockClient,
       );
       await client.systemOne(
-        SystemOneRequest(state: SystemOneState.text('s'), questions: {}),
+        SystemOneRequest(
+          state: SystemOneState.text('s'),
+          model: 'jev-latest',
+          questions: {},
+        ),
       );
       return sent;
     }
@@ -403,7 +428,11 @@ void main() {
 
       await expectLater(
         client.systemOne(
-          SystemOneRequest(state: SystemOneState.text('s'), questions: {}),
+          SystemOneRequest(
+            state: SystemOneState.text('s'),
+            model: 'jev-latest',
+            questions: {},
+          ),
         ),
         throwsA(
           isA<SystemOneResponseFormatException>().having(

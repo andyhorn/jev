@@ -3,8 +3,6 @@ import 'package:test/test.dart';
 
 void main() {
   test('public API is exported from the barrel', () {
-    expect(JevModel.latest, 'jev-latest');
-
     final question = NoulQuestion('test');
     expect(question, isA<Question>());
 
