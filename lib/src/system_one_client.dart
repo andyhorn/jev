@@ -9,7 +9,7 @@ import 'models/request.dart';
 import 'models/response.dart';
 import 'retry_policy.dart';
 
-/// A client for the TypeSafe AI System One API.
+/// A client for the System One API.
 class SystemOneClient {
   /// The hosted TypeSafe API, targeted when no `baseUrl` is supplied.
   static final defaultBaseUrl = Uri.parse('https://api.typesafe.ai');

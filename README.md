@@ -1,8 +1,10 @@
-# jev
+# system_one
 
-An unofficial Dart client for [TypeSafe AI](https://typesafe.ai)'s System One
-("Jev") API. See the [official API docs](https://docs.typesafe.ai) for details
-on the underlying service.
+An unofficial Dart client for the System One API, served by
+[TypeSafe AI](https://typesafe.ai) (where it's nicknamed "Jev") and by
+compatible servers such as Ollama's `systemone` endpoint. See the
+[official API docs](https://docs.typesafe.ai) for details on the underlying
+service.
 
 This is an experimental, play-project client. It is not affiliated with,
 endorsed by, or supported by TypeSafe AI, and it is not published to pub.dev
@@ -11,40 +13,44 @@ repository if you want to use it.
 
 ## Intended for backend use
 
-`JevClient` holds your System One API key and sends it on every request, so
-it's meant to run on a server or in a cloud function — never shipped inside a
-distributed frontend build, where the key would be extractable. It also uses
-`dart:io` (`Platform.environment` in `JevClient.fromEnvironment()`), so it
-won't compile for web targets at all.
+`SystemOneClient` holds your System One API key and sends it on every
+request, so it's meant to run on a server or in a cloud function — never
+shipped inside a distributed frontend build, where the key would be
+extractable. It also uses `dart:io` (`Platform.environment` in
+`SystemOneClient.fromEnvironment()`), so it won't compile for web targets at
+all.
 
 Using it directly from a Flutter app for local testing/prototyping is fine;
 just don't ship an app built against it, and don't rely on it for a web
 target. For production, have your backend build the request, call
-`JevClient`, and hand the frontend its own domain-specific result rather than
-raw `SystemOneRequest`/`Answer` types.
+`SystemOneClient`, and hand the frontend its own domain-specific result
+rather than raw `SystemOneRequest`/`Answer` types.
 
 ## Getting started
 
-You'll need a System One API key. Either set it in the `TYPESAFE_API_KEY`
-environment variable and use `JevClient.fromEnvironment()`, or pass it
-directly to the default constructor:
+You'll need a System One API key for TypeSafe's hosted API. Either set it in
+the `SYSTEM_ONE_API_KEY` environment variable and use
+`SystemOneClient.fromEnvironment()`, or pass it directly to the default
+constructor:
 
 ```dart
-import 'package:jev/jev.dart';
+import 'package:system_one/system_one.dart';
 
-final client = JevClient.fromEnvironment();
-// or: final client = JevClient(apiKey: 'sk-...');
+final client = SystemOneClient.fromEnvironment();
+// or: final client = SystemOneClient(apiKey: 'sk-...');
 ```
 
-Then ask one or more named questions about some `state`:
+Then ask one or more named questions about some `state`, naming the model to
+run — `'jev-latest'` on TypeSafe's hosted API, `'nimble'` on Ollama:
 
 ```dart
 final response = await client.systemOne(
   SystemOneRequest(
-    state: JevState.text(
+    state: SystemOneState.text(
       "Hi, I've been trying to connect my Stripe account for two days "
       "and keep getting a 500 error. This is urgent, I'm losing sales.",
     ),
+    model: 'jev-latest',
     questions: {
       'urgency': NoulQuestion('Does this message express urgency?'),
       'severity': ScoreQuestion(
@@ -62,64 +68,85 @@ for (final entry in response.answers.entries) {
 client.close();
 ```
 
-`state` accepts a `JevState` — use `JevState.text(...)` for plain text, `.object(...)` for structured data, or `.array(...)` for sequences.
+`state` accepts a `SystemOneState` — use `SystemOneState.text(...)` for plain
+text, `.object(...)` for structured data, or `.array(...)` for sequences.
 
-See `example/jev_example.dart` for a fuller, runnable example that
+See `example/system_one_example.dart` for a fuller, runnable example that
 demonstrates all three question types (`NoulQuestion`, `ChoiceQuestion`,
 `ScoreQuestion`) and exhaustive pattern matching over the `Answer` types.
 
 ## Command-line tool
 
-Each [release](https://github.com/andyhorn/jev/releases) attaches a compiled
-`jev` executable for Linux, macOS (arm64) and Windows. It sends the
-`TYPESAFE_API_KEY` environment variable, when set, as a bearer token:
+Each [release](https://github.com/andyhorn/system_one_dart/releases) attaches
+a compiled `system_one` executable for Linux, macOS (arm64) and Windows. It
+sends the `SYSTEM_ONE_API_KEY` environment variable, when set, as a bearer
+token, and `--model` names the model to run:
 
 ```bash
-jev --state "I've been charged twice and need this fixed today." \
+system_one --model jev-latest \
+    --state "I've been charged twice and need this fixed today." \
     --noul 'urgency=Does this message express urgency?'
 
 # Choice and score questions come from a JSON file in the API wire format.
-echo '{"subject": "Refund"}' | jev -f - --state-format json -q questions.json
+echo '{"subject": "Refund"}' | system_one --model jev-latest \
+    -f - --state-format json -q questions.json
 ```
 
 The `--json` flag prints the full response (answers, usage, model) as one
 line of machine-readable JSON, for piping into tools like `jq`:
 
 ```bash
-jev --state "$MESSAGE" --noul 'urgency=Does this express urgency?' --json \
+system_one --model jev-latest --state "$MESSAGE" \
+    --noul 'urgency=Does this express urgency?' --json \
     | jq '.answers.urgency.noul'
 ```
 
 Errors always go to stderr with a non-zero exit code, so stdout stays valid
 JSON even when a call fails.
 
-Run `jev --help` for all options. From a checkout, use `dart run jev`.
+Run `system_one --help` for all options. From a checkout, use
+`dart run system_one`.
 
 ## Local and self-hosted endpoints
 
 The client works against any endpoint that speaks the System One request
 shape, not just TypeSafe's hosted API — for example a local model server such
-as Ollama. These don't check bearer tokens, so no `TYPESAFE_API_KEY` is
-required:
+as Ollama. These don't check bearer tokens, so no `SYSTEM_ONE_API_KEY` is
+required, and model names come from the server (e.g. `nimble` on Ollama):
 
 ```dart
-final client = JevClient(baseUrl: Uri.parse('http://localhost:11434'));
+final client = SystemOneClient(baseUrl: Uri.parse('http://localhost:11434'));
 // or via the environment:
-//   export TYPESAFE_BASE_URL=http://localhost:11434
-//   final client = JevClient.fromEnvironment();
+//   export SYSTEM_ONE_BASE_URL=http://localhost:11434
+//   final client = SystemOneClient.fromEnvironment();
+```
+
+Requests to a local endpoint carry `model: 'nimble'` (or whichever model the
+server exposes) instead of a TypeSafe model alias:
+
+```dart
+final response = await client.systemOne(
+  SystemOneRequest(
+    state: SystemOneState.text("I've been charged twice."),
+    model: 'nimble',
+    questions: {
+      'urgency': NoulQuestion('Does this message express urgency?'),
+    },
+  ),
+);
 ```
 
 Requests carry an `Authorization` header only when an API key was supplied —
-`fromEnvironment()` still sends `TYPESAFE_API_KEY` if it happens to be set.
+`fromEnvironment()` still sends `SYSTEM_ONE_API_KEY` if it happens to be set.
 Nothing errors up front when the key is missing: pointing the default client
 at `https://api.typesafe.ai` without one simply fails with a 401
-(`JevAuthenticationException`) on the first request.
+(`SystemOneAuthenticationException`) on the first request.
 
-The CLI mirrors this — `--base-url` (or `TYPESAFE_BASE_URL`) overrides the
+The CLI mirrors this — `--base-url` (or `SYSTEM_ONE_BASE_URL`) overrides the
 endpoint and relaxes the key requirement:
 
 ```bash
-jev --base-url http://localhost:11434 \
+system_one --base-url http://localhost:11434 --model nimble \
     --state "I've been charged twice." \
     --noul 'urgency=Does this message express urgency?'
 ```
@@ -162,17 +189,16 @@ These follow from the shape of the underlying API, not from missing client
 functionality:
 
 - **No streaming support.** The System One API does not offer a streaming
-response mode, so neither does this client.
+  response mode, so neither does this client.
 - **No batch endpoint.** There is no bulk/batch request API — submit
-multiple named questions in a single `systemOne` call instead.
+  multiple named questions in a single `systemOne` call instead.
 - **Single-shot only.** The API has no server-side session or conversation
-state. If you need multi-turn context, include the prior conversation
-inside `state` yourself.
-- **Per-request timeout only.** The `timeout` passed to `JevClient` applies
-to each individual HTTP attempt, not to the total wall-clock time across
-all retries performed by the configured `RetryPolicy`.
-- **`JevApiException.body` is untyped.** The exact JSON schema of an error
-response body is undocumented by TypeSafe AI, so `body` is deliberately
-left as `Object?` rather than a typed model — treat it as best-effort
-diagnostic information, not a stable contract.
-
+  state. If you need multi-turn context, include the prior conversation
+  inside `state` yourself.
+- **Per-request timeout only.** The `timeout` passed to `SystemOneClient`
+  applies to each individual HTTP attempt, not to the total wall-clock time
+  across all retries performed by the configured `RetryPolicy`.
+- **`SystemOneApiException.body` is untyped.** The exact JSON schema of an
+  error response body is undocumented by TypeSafe AI, so `body` is
+  deliberately left as `Object?` rather than a typed model — treat it as
+  best-effort diagnostic information, not a stable contract.

@@ -1,4 +1,5 @@
-/// An unofficial Dart client for the TypeSafe AI System One (Jev) API.
+/// An unofficial Dart client for the System One API (TypeSafe AI, Ollama,
+/// and other compatible servers).
 library;
 
 export 'src/models/answer.dart';

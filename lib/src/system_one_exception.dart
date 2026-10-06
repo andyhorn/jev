@@ -30,6 +30,9 @@ class SystemOneApiException extends SystemOneException {
   });
 
   /// The `x-typesafe-request-id` response header, if present.
+  ///
+  /// Only TypeSafe's hosted API sends this header, so it is `null` for
+  /// other servers such as Ollama.
   String? get requestId => headers['x-typesafe-request-id'];
 
   @override
