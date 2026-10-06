@@ -2,7 +2,7 @@ import 'dart:math';
 
 final Random _sharedRandom = Random();
 
-/// Controls whether and how [SystemOneClient] retries failed requests.
+/// Controls whether and how `SystemOneClient` retries failed requests.
 class RetryPolicy {
   /// The maximum number of retry attempts after the initial request.
   final int maxRetries;

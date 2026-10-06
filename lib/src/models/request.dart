@@ -15,11 +15,15 @@ class SystemOneRequest {
   /// The questions to ask about [state], keyed by a caller-chosen name.
   final Map<String, Question> questions;
 
-  const SystemOneRequest({
+  SystemOneRequest({
     required this.state,
     required this.model,
     required this.questions,
-  });
+  }) {
+    if (model.trim().isEmpty) {
+      throw ArgumentError.value(model, 'model', 'must not be blank');
+    }
+  }
 
   /// Serializes this request into its wire-format JSON representation.
   Map<String, Object?> toJson() {

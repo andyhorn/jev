@@ -20,8 +20,8 @@ jobs:
         uses: 1password/load-secrets-action@v2
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          APP_CLIENT_ID: op://jev/release-please/client-id
-          APP_PRIVATE_KEY: op://jev/release-please/jev-release-please.private-key.pem
+          APP_CLIENT_ID: op://system-one/release-please/client-id
+          APP_PRIVATE_KEY: op://system-one/release-please/system-one-release-please.private-key.pem
       - uses: actions/create-github-app-token@v3
         id: app-token
         with:

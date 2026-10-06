@@ -55,17 +55,6 @@ void main() {
     });
   });
 
-  test('serializes the explicit model', () {
-    final request = SystemOneRequest(
-      state: SystemOneState.text('some state'),
-      model: 'jev-latest',
-      questions: {'urgency': NoulQuestion('Is this urgent?')},
-    );
-
-    expect(request.model, 'jev-latest');
-    expect(request.toJson()['model'], 'jev-latest');
-  });
-
   test('allows overriding the model', () {
     final request = SystemOneRequest(
       state: SystemOneState.text('some state'),
@@ -74,5 +63,18 @@ void main() {
     );
 
     expect(request.toJson()['model'], 'jev-preview');
+  });
+
+  test('rejects a blank model', () {
+    for (final model in ['', '   ']) {
+      expect(
+        () => SystemOneRequest(
+          state: SystemOneState.text('some state'),
+          model: model,
+          questions: {'urgency': NoulQuestion('Is this urgent?')},
+        ),
+        throwsArgumentError,
+      );
+    }
   });
 }

@@ -66,9 +66,9 @@ Future<int> runSystemOne(
       questions: await _readQuestions(args),
     );
 
-    final client = SystemOneClient(
-      apiKey: environment['SYSTEM_ONE_API_KEY'],
-      baseUrl: _resolveBaseUrl(args.option('base-url'), environment),
+    final client = SystemOneClient.fromEnvironment(
+      baseUrl: _resolveBaseUrl(args.option('base-url')),
+      environment: environment,
       httpClient: httpClient,
     );
     try {
@@ -164,21 +164,21 @@ ArgParser _buildParser() {
     );
 }
 
-/// Resolves the endpoint from `--base-url`, then `SYSTEM_ONE_BASE_URL`, then
-/// the hosted default. A custom endpoint does not require an API key.
-Uri? _resolveBaseUrl(String? flag, Map<String, String> environment) {
-  final value = flag ?? environment['SYSTEM_ONE_BASE_URL'];
-  if (value == null || value.isEmpty) {
+/// Resolves the `--base-url` flag; returns null so that
+/// [SystemOneClient.fromEnvironment] applies `SYSTEM_ONE_BASE_URL` or the
+/// hosted default. A custom endpoint does not require an API key.
+Uri? _resolveBaseUrl(String? flag) {
+  if (flag == null || flag.isEmpty) {
     return null;
   }
   final Uri parsed;
   try {
-    parsed = Uri.parse(value);
+    parsed = Uri.parse(flag);
   } on FormatException catch (e) {
-    throw _UsageError('Invalid base URL "$value": ${e.message}');
+    throw _UsageError('Invalid base URL "$flag": ${e.message}');
   }
   if (parsed.scheme != 'http' && parsed.scheme != 'https') {
-    throw _UsageError('Base URL must be an http or https URL, got "$value".');
+    throw _UsageError('Base URL must be an http or https URL, got "$flag".');
   }
   return parsed;
 }

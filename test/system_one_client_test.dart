@@ -397,6 +397,14 @@ void main() {
       expect(sent.url, Uri.parse('http://explicit.example/v1/systemone'));
     });
 
+    test(
+      'falls back to the default when SYSTEM_ONE_BASE_URL is empty',
+      () async {
+        final sent = await capture(const {'SYSTEM_ONE_BASE_URL': ''});
+        expect(sent.url, Uri.parse('https://api.typesafe.ai/v1/systemone'));
+      },
+    );
+
     test('ignores the legacy TYPESAFE_API_KEY and TYPESAFE_BASE_URL', () async {
       final sent = await capture(const {
         'TYPESAFE_API_KEY': 'sk-legacy',
@@ -415,6 +423,26 @@ void main() {
       client.close();
 
       expect(spy.closed, isFalse);
+    });
+
+    test('makes the owned http.Client unusable', () async {
+      final client = SystemOneClient(
+        apiKey: 'k',
+        retryPolicy: RetryPolicy.none,
+      );
+
+      client.close();
+
+      await expectLater(
+        client.systemOne(
+          SystemOneRequest(
+            state: SystemOneState.text('s'),
+            model: 'jev-latest',
+            questions: {},
+          ),
+        ),
+        throwsA(isA<SystemOneConnectionException>()),
+      );
     });
   });
 

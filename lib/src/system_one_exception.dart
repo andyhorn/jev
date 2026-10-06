@@ -1,6 +1,6 @@
 /// The exception hierarchy for the `system_one` client.
 ///
-/// All exceptions thrown by [SystemOneClient] implement this sealed base.
+/// All exceptions thrown by `SystemOneClient` implement this sealed base.
 library;
 
 /// The base type for every exception thrown by the `system_one` client.

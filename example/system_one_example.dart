@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:system_one/system_one.dart';
 
 /// Demonstrates a single System One call asking a Noul, Choice, and Score
@@ -6,13 +8,12 @@ import 'package:system_one/system_one.dart';
 /// Requires a real System One API key in the `SYSTEM_ONE_API_KEY` environment
 /// variable — this example is illustrative only and is not run by CI.
 Future<void> main() async {
-  final SystemOneClient client;
-  try {
-    client = SystemOneClient.fromEnvironment();
-  } on StateError catch (e) {
-    print('Cannot run example: ${e.message}');
+  if (Platform.environment['SYSTEM_ONE_API_KEY']?.isNotEmpty != true) {
+    print('Cannot run example: set SYSTEM_ONE_API_KEY to a hosted API key.');
     return;
   }
+
+  final client = SystemOneClient.fromEnvironment();
 
   try {
     final response = await client.systemOne(

@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:system_one/src/cli/system_one_cli.dart';
+import 'package:system_one/system_one_cli.dart';
 
 Future<void> main(List<String> arguments) async {
   exitCode = await runSystemOne(
