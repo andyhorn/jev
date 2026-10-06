@@ -48,8 +48,8 @@ class SystemOneClient {
   /// Creates a client from the process environment (or [environment], for
   /// tests).
   ///
-  /// `TYPESAFE_API_KEY` is used as the bearer token when set.
-  /// `TYPESAFE_BASE_URL` overrides the endpoint when [baseUrl] is not given.
+  /// `SYSTEM_ONE_API_KEY` is used as the bearer token when set.
+  /// `SYSTEM_ONE_BASE_URL` overrides the endpoint when [baseUrl] is not given.
   /// Neither variable is required: without a key, requests simply carry no
   /// `Authorization` header, and the hosted API answers them with a 401.
   factory SystemOneClient.fromEnvironment({
@@ -60,9 +60,9 @@ class SystemOneClient {
     RetryPolicy retryPolicy = const RetryPolicy(),
   }) {
     final env = environment ?? Platform.environment;
-    final baseUrlOverride = env['TYPESAFE_BASE_URL'];
+    final baseUrlOverride = env['SYSTEM_ONE_BASE_URL'];
     return SystemOneClient(
-      apiKey: env['TYPESAFE_API_KEY'],
+      apiKey: env['SYSTEM_ONE_API_KEY'],
       baseUrl:
           baseUrl ??
           ((baseUrlOverride == null || baseUrlOverride.isEmpty)

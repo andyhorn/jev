@@ -17,7 +17,7 @@ class _Result {
 
 Future<_Result> _run(
   List<String> args, {
-  Map<String, String> environment = const {'TYPESAFE_API_KEY': 'sk-test'},
+  Map<String, String> environment = const {'SYSTEM_ONE_API_KEY': 'sk-test'},
   String stdinText = '',
   http.Client? httpClient,
 }) async {
@@ -331,9 +331,9 @@ void main() {
       expect(sent.headers.containsKey('Authorization'), isFalse);
     });
 
-    test('TYPESAFE_BASE_URL is honored, and --base-url wins', () async {
+    test('SYSTEM_ONE_BASE_URL is honored, and --base-url wins', () async {
       late http.Request sent;
-      const env = {'TYPESAFE_BASE_URL': 'http://env.example'};
+      const env = {'SYSTEM_ONE_BASE_URL': 'http://env.example'};
 
       await _run(
         ['-s', 'x', '-n', 'a=b'],
@@ -349,5 +349,24 @@ void main() {
       );
       expect(sent.url.host, 'flag.example');
     });
+
+    test(
+      'the legacy TYPESAFE_API_KEY and TYPESAFE_BASE_URL are ignored',
+      () async {
+        late http.Request sent;
+        final result = await _run(
+          ['-s', 'x', '-n', 'a=b'],
+          environment: const {
+            'TYPESAFE_API_KEY': 'sk-legacy',
+            'TYPESAFE_BASE_URL': 'http://legacy.example',
+          },
+          httpClient: _okClient((r) => sent = r),
+        );
+
+        expect(result.code, 0);
+        expect(sent.url, Uri.parse('https://api.typesafe.ai/v1/systemone'));
+        expect(sent.headers.containsKey('Authorization'), isFalse);
+      },
+    );
   });
 }

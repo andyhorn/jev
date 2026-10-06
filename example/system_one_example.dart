@@ -3,7 +3,7 @@ import 'package:system_one/system_one.dart';
 /// Demonstrates a single System One call asking a Noul, Choice, and Score
 /// question about a support-ticket-style `state`.
 ///
-/// Requires a real System One API key in the `TYPESAFE_API_KEY` environment
+/// Requires a real System One API key in the `SYSTEM_ONE_API_KEY` environment
 /// variable — this example is illustrative only and is not run by CI.
 Future<void> main() async {
   final SystemOneClient client;

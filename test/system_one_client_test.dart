@@ -342,8 +342,8 @@ void main() {
       return sent;
     }
 
-    test('sends TYPESAFE_API_KEY as a bearer token when set', () async {
-      final sent = await capture(const {'TYPESAFE_API_KEY': 'sk-env'});
+    test('sends SYSTEM_ONE_API_KEY as a bearer token when set', () async {
+      final sent = await capture(const {'SYSTEM_ONE_API_KEY': 'sk-env'});
       expect(sent.headers['Authorization'], 'Bearer sk-env');
     });
 
@@ -353,23 +353,32 @@ void main() {
         final unset = await capture(const {});
         expect(unset.headers.containsKey('Authorization'), isFalse);
 
-        final empty = await capture(const {'TYPESAFE_API_KEY': ''});
+        final empty = await capture(const {'SYSTEM_ONE_API_KEY': ''});
         expect(empty.headers.containsKey('Authorization'), isFalse);
       },
     );
 
-    test('targets TYPESAFE_BASE_URL when set', () async {
+    test('targets SYSTEM_ONE_BASE_URL when set', () async {
       final sent = await capture(const {
-        'TYPESAFE_BASE_URL': 'http://localhost:11434',
+        'SYSTEM_ONE_BASE_URL': 'http://localhost:11434',
       });
       expect(sent.url, Uri.parse('http://localhost:11434/v1/systemone'));
     });
 
-    test('prefers an explicit baseUrl over TYPESAFE_BASE_URL', () async {
+    test('prefers an explicit baseUrl over SYSTEM_ONE_BASE_URL', () async {
       final sent = await capture(const {
-        'TYPESAFE_BASE_URL': 'http://env.example',
+        'SYSTEM_ONE_BASE_URL': 'http://env.example',
       }, baseUrl: Uri.parse('http://explicit.example'));
       expect(sent.url, Uri.parse('http://explicit.example/v1/systemone'));
+    });
+
+    test('ignores the legacy TYPESAFE_API_KEY and TYPESAFE_BASE_URL', () async {
+      final sent = await capture(const {
+        'TYPESAFE_API_KEY': 'sk-legacy',
+        'TYPESAFE_BASE_URL': 'http://legacy.example',
+      });
+      expect(sent.headers.containsKey('Authorization'), isFalse);
+      expect(sent.url, Uri.parse('https://api.typesafe.ai/v1/systemone'));
     });
   });
 

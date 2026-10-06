@@ -62,7 +62,7 @@ Future<int> runSystemOne(
     );
 
     final client = SystemOneClient(
-      apiKey: environment['TYPESAFE_API_KEY'],
+      apiKey: environment['SYSTEM_ONE_API_KEY'],
       baseUrl: _resolveBaseUrl(args.option('base-url'), environment),
       httpClient: httpClient,
     );
@@ -139,7 +139,8 @@ ArgParser _buildParser() {
       'base-url',
       valueHelp: 'url',
       help:
-          'Override the API base URL (default ${SystemOneClient.defaultBaseUrl}). '
+          'Override the API base URL (default '
+          '${SystemOneClient.defaultBaseUrl}, or SYSTEM_ONE_BASE_URL). '
           'Custom endpoints need no API key.',
     )
     ..addFlag(
@@ -156,10 +157,10 @@ ArgParser _buildParser() {
     );
 }
 
-/// Resolves the endpoint from `--base-url`, then `TYPESAFE_BASE_URL`, then
+/// Resolves the endpoint from `--base-url`, then `SYSTEM_ONE_BASE_URL`, then
 /// the hosted default. A custom endpoint does not require an API key.
 Uri? _resolveBaseUrl(String? flag, Map<String, String> environment) {
-  final value = flag ?? environment['TYPESAFE_BASE_URL'];
+  final value = flag ?? environment['SYSTEM_ONE_BASE_URL'];
   if (value == null || value.isEmpty) {
     return null;
   }
@@ -181,8 +182,8 @@ Usage: system_one [options]
 
 Asks System One questions about some content.
 
-Sends the TYPESAFE_API_KEY environment variable, when set, as a bearer token.
-A custom --base-url (or TYPESAFE_BASE_URL) endpoint, such as a local server,
+Sends the SYSTEM_ONE_API_KEY environment variable, when set, as a bearer token.
+A custom --base-url (or SYSTEM_ONE_BASE_URL) endpoint, such as a local server,
 needs no key.
 
 ${parser.usage}''';
