@@ -15,9 +15,22 @@ jobs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
+      - name: Load GitHub App credentials
+        id: secrets
+        uses: 1password/load-secrets-action@v2
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          APP_CLIENT_ID: op://jev/release-please/client-id
+          APP_PRIVATE_KEY: op://jev/release-please/jev-release-please.private-key.pem
+      - uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          client-id: ${{ env.APP_CLIENT_ID }}
+          private-key: ${{ env.APP_PRIVATE_KEY }}
       - uses: googleapis/release-please-action@v4
         id: release
         with:
+          token: ${{ steps.app-token.outputs.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
