@@ -143,18 +143,6 @@ void main() {
   });
 
   group('usage errors exit 64', () {
-    test('without an API key', () async {
-      final result = await _run([
-        '-s',
-        'x',
-        '-n',
-        'a=b',
-      ], environment: const {});
-
-      expect(result.code, 64);
-      expect(result.err, contains('TYPESAFE_API_KEY'));
-    });
-
     test('without a state', () async {
       final result = await _run(['-n', 'a=b']);
 
@@ -183,6 +171,20 @@ void main() {
       expect(result.err, contains('more than once'));
     });
 
+    test('with a non-http --base-url', () async {
+      final result = await _run([
+        '-s',
+        'x',
+        '-n',
+        'a=b',
+        '--base-url',
+        'localhost:11434',
+      ]);
+
+      expect(result.code, 64);
+      expect(result.err, contains('http or https'));
+    });
+
     test('with a non-object/array JSON state', () async {
       final result = await _run([
         '-s',
@@ -207,6 +209,25 @@ void main() {
     expect(result.code, 1);
     expect(result.err, contains('401'));
     expect(result.err, contains('bad key'));
+  });
+
+  test('missing key against the hosted API exits 1 with the 401', () async {
+    late http.Request sent;
+    final client = MockClient((request) async {
+      sent = request;
+      return http.Response(jsonEncode({'error': 'missing api key'}), 401);
+    });
+
+    final result = await _run(
+      ['-s', 'x', '-n', 'a=b'],
+      environment: const {},
+      httpClient: client,
+    );
+
+    expect(result.code, 1);
+    expect(sent.headers.containsKey('Authorization'), isFalse);
+    expect(result.err, contains('401'));
+    expect(result.err, contains('missing api key'));
   });
 
   group('--json', () {
@@ -293,6 +314,40 @@ void main() {
       expect(result.code, 64);
       expect(result.out, isEmpty);
       expect(result.err, contains('--state'));
+    });
+  });
+
+  group('custom base URLs', () {
+    test('--base-url works without an API key', () async {
+      late http.Request sent;
+      final result = await _run(
+        ['-s', 'x', '-n', 'a=b', '--base-url', 'http://localhost:11434'],
+        environment: const {},
+        httpClient: _okClient((r) => sent = r),
+      );
+
+      expect(result.code, 0);
+      expect(sent.url, Uri.parse('http://localhost:11434/v1/systemone'));
+      expect(sent.headers.containsKey('Authorization'), isFalse);
+    });
+
+    test('TYPESAFE_BASE_URL is honored, and --base-url wins', () async {
+      late http.Request sent;
+      const env = {'TYPESAFE_BASE_URL': 'http://env.example'};
+
+      await _run(
+        ['-s', 'x', '-n', 'a=b'],
+        environment: env,
+        httpClient: _okClient((r) => sent = r),
+      );
+      expect(sent.url.host, 'env.example');
+
+      await _run(
+        ['-s', 'x', '-n', 'a=b', '--base-url', 'http://flag.example'],
+        environment: env,
+        httpClient: _okClient((r) => sent = r),
+      );
+      expect(sent.url.host, 'flag.example');
     });
   });
 }

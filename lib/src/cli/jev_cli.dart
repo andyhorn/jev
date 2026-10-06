@@ -55,23 +55,15 @@ Future<int> runJev(
       return _exitOk;
     }
 
-    final apiKey = environment['TYPESAFE_API_KEY'];
-    if (apiKey == null || apiKey.isEmpty) {
-      throw _UsageError(
-        'The TYPESAFE_API_KEY environment variable is not set.',
-      );
-    }
-
     final request = SystemOneRequest(
       state: await _readState(args, stdin),
       model: args.option('model')!,
       questions: await _readQuestions(args),
     );
 
-    final baseUrl = args.option('base-url');
     final client = JevClient(
-      apiKey: apiKey,
-      baseUrl: baseUrl == null ? null : Uri.parse(baseUrl),
+      apiKey: environment['TYPESAFE_API_KEY'],
+      baseUrl: _resolveBaseUrl(args.option('base-url'), environment),
       httpClient: httpClient,
     );
     try {
@@ -143,7 +135,13 @@ ArgParser _buildParser() {
       defaultsTo: JevModel.latest,
       help: 'The model alias to use.',
     )
-    ..addOption('base-url', hide: true, help: 'Override the API base URL.')
+    ..addOption(
+      'base-url',
+      valueHelp: 'url',
+      help:
+          'Override the API base URL (default ${JevClient.defaultBaseUrl}). '
+          'Custom endpoints need no API key.',
+    )
     ..addFlag(
       'json',
       negatable: false,
@@ -158,12 +156,34 @@ ArgParser _buildParser() {
     );
 }
 
+/// Resolves the endpoint from `--base-url`, then `TYPESAFE_BASE_URL`, then
+/// the hosted default. A custom endpoint does not require an API key.
+Uri? _resolveBaseUrl(String? flag, Map<String, String> environment) {
+  final value = flag ?? environment['TYPESAFE_BASE_URL'];
+  if (value == null || value.isEmpty) {
+    return null;
+  }
+  final Uri parsed;
+  try {
+    parsed = Uri.parse(value);
+  } on FormatException catch (e) {
+    throw _UsageError('Invalid base URL "$value": ${e.message}');
+  }
+  if (parsed.scheme != 'http' && parsed.scheme != 'https') {
+    throw _UsageError('Base URL must be an http or https URL, got "$value".');
+  }
+  return parsed;
+}
+
 String _usage(ArgParser parser) {
   return '''
 Usage: jev [options]
 
-Asks System One questions about some content. Requires the TYPESAFE_API_KEY
-environment variable.
+Asks System One questions about some content.
+
+Sends the TYPESAFE_API_KEY environment variable, when set, as a bearer token.
+A custom --base-url (or TYPESAFE_BASE_URL) endpoint, such as a local server,
+needs no key.
 
 ${parser.usage}''';
 }

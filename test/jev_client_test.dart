@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -86,6 +85,21 @@ void main() {
         expect(response.usage.outputTokens, 8);
       },
     );
+
+    test('omits the Authorization header when no API key is given', () async {
+      http.Request? capturedRequest;
+      final mockClient = MockClient((request) async {
+        capturedRequest = request;
+        return http.Response(jsonEncode(_quickstartJson), 200);
+      });
+
+      final client = JevClient(httpClient: mockClient);
+      await client.systemOne(
+        SystemOneRequest(state: JevState.text('s'), questions: {}),
+      );
+
+      expect(capturedRequest!.headers.containsKey('Authorization'), isFalse);
+    });
   });
 
   group('JevClient error mapping', () {
@@ -305,15 +319,55 @@ void main() {
   });
 
   group('JevClient.fromEnvironment', () {
+    Future<http.Request> capture(
+      Map<String, String> environment, {
+      Uri? baseUrl,
+    }) async {
+      late http.Request sent;
+      final mockClient = MockClient((request) async {
+        sent = request;
+        return http.Response(jsonEncode(_quickstartJson), 200);
+      });
+      final client = JevClient.fromEnvironment(
+        baseUrl: baseUrl,
+        environment: environment,
+        httpClient: mockClient,
+      );
+      await client.systemOne(
+        SystemOneRequest(state: JevState.text('s'), questions: {}),
+      );
+      return sent;
+    }
+
+    test('sends TYPESAFE_API_KEY as a bearer token when set', () async {
+      final sent = await capture(const {'TYPESAFE_API_KEY': 'sk-env'});
+      expect(sent.headers['Authorization'], 'Bearer sk-env');
+    });
+
     test(
-      'throws StateError when TYPESAFE_API_KEY is unset',
-      () {
-        expect(() => JevClient.fromEnvironment(), throwsStateError);
+      'sends no Authorization header when the key is unset or empty',
+      () async {
+        final unset = await capture(const {});
+        expect(unset.headers.containsKey('Authorization'), isFalse);
+
+        final empty = await capture(const {'TYPESAFE_API_KEY': ''});
+        expect(empty.headers.containsKey('Authorization'), isFalse);
       },
-      skip: (Platform.environment['TYPESAFE_API_KEY']?.isNotEmpty ?? false)
-          ? 'TYPESAFE_API_KEY is set in this environment'
-          : null,
     );
+
+    test('targets TYPESAFE_BASE_URL when set', () async {
+      final sent = await capture(const {
+        'TYPESAFE_BASE_URL': 'http://localhost:11434',
+      });
+      expect(sent.url, Uri.parse('http://localhost:11434/v1/systemone'));
+    });
+
+    test('prefers an explicit baseUrl over TYPESAFE_BASE_URL', () async {
+      final sent = await capture(const {
+        'TYPESAFE_BASE_URL': 'http://env.example',
+      }, baseUrl: Uri.parse('http://explicit.example'));
+      expect(sent.url, Uri.parse('http://explicit.example/v1/systemone'));
+    });
   });
 
   group('JevClient.close', () {

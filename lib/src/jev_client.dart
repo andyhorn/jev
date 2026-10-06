@@ -11,16 +11,24 @@ import 'retry_policy.dart';
 
 /// A client for the TypeSafe AI System One API.
 class JevClient {
-  final String _apiKey;
+  /// The hosted TypeSafe API, targeted when no `baseUrl` is supplied.
+  static final defaultBaseUrl = Uri.parse('https://api.typesafe.ai');
+
+  final String? _apiKey;
   final Uri _baseUrl;
   final http.Client _httpClient;
   final bool _ownsHttpClient;
   final Duration _timeout;
   final RetryPolicy _retryPolicy;
 
-  /// Creates a client authenticated with [apiKey].
+  /// Creates a client.
+  ///
+  /// When [apiKey] is non-empty it is sent as a bearer token on every
+  /// request; when absent, requests carry no `Authorization` header. The
+  /// hosted API rejects unauthenticated requests, but a custom or local
+  /// [baseUrl] (e.g. an Ollama server) may need no key at all.
   JevClient({
-    required String apiKey,
+    String? apiKey,
     Uri? baseUrl,
     // If null, this instance creates and owns an internal [http.Client],
     // which [close] will close. If you pass your own client, you retain
@@ -29,7 +37,7 @@ class JevClient {
     Duration timeout = const Duration(seconds: 30),
     RetryPolicy retryPolicy = const RetryPolicy(),
   }) : _apiKey = apiKey, // ignore: prefer_initializing_formals
-       _baseUrl = baseUrl ?? Uri.parse('https://api.typesafe.ai'),
+       _baseUrl = baseUrl ?? defaultBaseUrl,
        _httpClient = httpClient ?? http.Client(),
        _ownsHttpClient = httpClient == null,
        // ignore: prefer_initializing_formals
@@ -37,27 +45,29 @@ class JevClient {
        // ignore: prefer_initializing_formals
        _retryPolicy = retryPolicy;
 
-  /// Creates a client using the API key from the `TYPESAFE_API_KEY`
-  /// environment variable.
+  /// Creates a client from the process environment (or [environment], for
+  /// tests).
   ///
-  /// Throws a [StateError] if that variable is unset or empty.
+  /// `TYPESAFE_API_KEY` is used as the bearer token when set.
+  /// `TYPESAFE_BASE_URL` overrides the endpoint when [baseUrl] is not given.
+  /// Neither variable is required: without a key, requests simply carry no
+  /// `Authorization` header, and the hosted API answers them with a 401.
   factory JevClient.fromEnvironment({
     Uri? baseUrl,
+    Map<String, String>? environment,
     http.Client? httpClient,
     Duration timeout = const Duration(seconds: 30),
     RetryPolicy retryPolicy = const RetryPolicy(),
   }) {
-    final apiKey = Platform.environment['TYPESAFE_API_KEY'];
-    if (apiKey == null || apiKey.isEmpty) {
-      throw StateError(
-        'The TYPESAFE_API_KEY environment variable is not set. '
-        'Set it to your System One API key, or use the default '
-        'JevClient constructor to pass one explicitly.',
-      );
-    }
+    final env = environment ?? Platform.environment;
+    final baseUrlOverride = env['TYPESAFE_BASE_URL'];
     return JevClient(
-      apiKey: apiKey,
-      baseUrl: baseUrl,
+      apiKey: env['TYPESAFE_API_KEY'],
+      baseUrl:
+          baseUrl ??
+          ((baseUrlOverride == null || baseUrlOverride.isEmpty)
+              ? defaultBaseUrl
+              : Uri.parse(baseUrlOverride)),
       httpClient: httpClient,
       timeout: timeout,
       retryPolicy: retryPolicy,
@@ -72,8 +82,9 @@ class JevClient {
   Future<SystemOneResponse> systemOne(SystemOneRequest request) async {
     final uri = _baseUrl.resolve('/v1/systemone');
     final body = utf8.encode(jsonEncode(request.toJson()));
-    final headers = {
-      'Authorization': 'Bearer $_apiKey',
+    final headers = <String, String>{
+      if (_apiKey != null && _apiKey.isNotEmpty)
+        'Authorization': 'Bearer $_apiKey',
       'Content-Type': 'application/json; charset=utf-8',
     };
 

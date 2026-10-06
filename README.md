@@ -71,8 +71,8 @@ demonstrates all three question types (`NoulQuestion`, `ChoiceQuestion`,
 ## Command-line tool
 
 Each [release](https://github.com/andyhorn/jev/releases) attaches a compiled
-`jev` executable for Linux, macOS (arm64) and Windows. It reads the API key
-from `TYPESAFE_API_KEY`:
+`jev` executable for Linux, macOS (arm64) and Windows. It sends the
+`TYPESAFE_API_KEY` environment variable, when set, as a bearer token:
 
 ```bash
 jev --state "I've been charged twice and need this fixed today." \
@@ -94,6 +94,35 @@ Errors always go to stderr with a non-zero exit code, so stdout stays valid
 JSON even when a call fails.
 
 Run `jev --help` for all options. From a checkout, use `dart run jev`.
+
+## Local and self-hosted endpoints
+
+The client works against any endpoint that speaks the System One request
+shape, not just TypeSafe's hosted API — for example a local model server such
+as Ollama. These don't check bearer tokens, so no `TYPESAFE_API_KEY` is
+required:
+
+```dart
+final client = JevClient(baseUrl: Uri.parse('http://localhost:11434'));
+// or via the environment:
+//   export TYPESAFE_BASE_URL=http://localhost:11434
+//   final client = JevClient.fromEnvironment();
+```
+
+Requests carry an `Authorization` header only when an API key was supplied —
+`fromEnvironment()` still sends `TYPESAFE_API_KEY` if it happens to be set.
+Nothing errors up front when the key is missing: pointing the default client
+at `https://api.typesafe.ai` without one simply fails with a 401
+(`JevAuthenticationException`) on the first request.
+
+The CLI mirrors this — `--base-url` (or `TYPESAFE_BASE_URL`) overrides the
+endpoint and relaxes the key requirement:
+
+```bash
+jev --base-url http://localhost:11434 \
+    --state "I've been charged twice." \
+    --noul 'urgency=Does this message express urgency?'
+```
 
 ## AI agent skill
 
