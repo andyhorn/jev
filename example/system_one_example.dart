@@ -1,4 +1,4 @@
-import 'package:jev/jev.dart';
+import 'package:system_one/system_one.dart';
 
 /// Demonstrates a single System One call asking a Noul, Choice, and Score
 /// question about a support-ticket-style `state`.
@@ -6,9 +6,9 @@ import 'package:jev/jev.dart';
 /// Requires a real System One API key in the `TYPESAFE_API_KEY` environment
 /// variable — this example is illustrative only and is not run by CI.
 Future<void> main() async {
-  final JevClient client;
+  final SystemOneClient client;
   try {
-    client = JevClient.fromEnvironment();
+    client = SystemOneClient.fromEnvironment();
   } on StateError catch (e) {
     print('Cannot run example: ${e.message}');
     return;
@@ -17,7 +17,7 @@ Future<void> main() async {
   try {
     final response = await client.systemOne(
       SystemOneRequest(
-        state: JevState.text(
+        state: SystemOneState.text(
           "Hi, I've been trying to connect my Stripe account for two days "
           "and keep getting a 500 error. This is urgent, I'm losing sales.",
         ),
@@ -56,7 +56,7 @@ Future<void> main() async {
       'output=${response.usage.outputTokens}',
     );
     print('model: ${response.model}');
-  } on JevException catch (e) {
+  } on SystemOneException catch (e) {
     print('System One request failed: $e');
   } finally {
     client.close();

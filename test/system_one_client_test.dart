@@ -2,13 +2,13 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:jev/src/jev_client.dart';
-import 'package:jev/src/jev_exception.dart';
-import 'package:jev/src/models/answer.dart';
-import 'package:jev/src/models/question.dart';
-import 'package:jev/src/models/request.dart';
-import 'package:jev/src/models/state.dart';
-import 'package:jev/src/retry_policy.dart';
+import 'package:system_one/src/system_one_client.dart';
+import 'package:system_one/src/system_one_exception.dart';
+import 'package:system_one/src/models/answer.dart';
+import 'package:system_one/src/models/question.dart';
+import 'package:system_one/src/models/request.dart';
+import 'package:system_one/src/models/state.dart';
+import 'package:system_one/src/retry_policy.dart';
 import 'package:test/test.dart';
 
 class _SpyHttpClient extends http.BaseClient {
@@ -36,7 +36,7 @@ const _quickstartJson = {
 };
 
 void main() {
-  group('JevClient.systemOne', () {
+  group('SystemOneClient.systemOne', () {
     test(
       'sends a well-formed request and parses a successful response',
       () async {
@@ -46,11 +46,14 @@ void main() {
           return http.Response(jsonEncode(_quickstartJson), 200);
         });
 
-        final client = JevClient(apiKey: 'test-key', httpClient: mockClient);
+        final client = SystemOneClient(
+          apiKey: 'test-key',
+          httpClient: mockClient,
+        );
 
         final response = await client.systemOne(
           SystemOneRequest(
-            state: JevState.text('Please refund my order immediately!'),
+            state: SystemOneState.text('Please refund my order immediately!'),
             questions: {'urgency': NoulQuestion('Does this express urgency?')},
           ),
         );
@@ -93,17 +96,17 @@ void main() {
         return http.Response(jsonEncode(_quickstartJson), 200);
       });
 
-      final client = JevClient(httpClient: mockClient);
+      final client = SystemOneClient(httpClient: mockClient);
       await client.systemOne(
-        SystemOneRequest(state: JevState.text('s'), questions: {}),
+        SystemOneRequest(state: SystemOneState.text('s'), questions: {}),
       );
 
       expect(capturedRequest!.headers.containsKey('Authorization'), isFalse);
     });
   });
 
-  group('JevClient error mapping', () {
-    Future<JevApiException> callWithStatus(
+  group('SystemOneClient error mapping', () {
+    Future<SystemOneApiException> callWithStatus(
       int statusCode, {
       String body = '',
       Map<String, String> headers = const {},
@@ -111,107 +114,107 @@ void main() {
       final mockClient = MockClient((request) async {
         return http.Response(body, statusCode, headers: headers);
       });
-      final client = JevClient(
+      final client = SystemOneClient(
         apiKey: 'k',
         httpClient: mockClient,
         retryPolicy: RetryPolicy.none,
       );
       try {
         await client.systemOne(
-          SystemOneRequest(state: JevState.text('s'), questions: {}),
+          SystemOneRequest(state: SystemOneState.text('s'), questions: {}),
         );
         fail('expected an exception');
-      } on JevApiException catch (e) {
+      } on SystemOneApiException catch (e) {
         return e;
       }
     }
 
-    test('400 maps to JevBadRequestException', () async {
+    test('400 maps to SystemOneBadRequestException', () async {
       final e = await callWithStatus(
         400,
         headers: {'x-typesafe-request-id': 'req-400'},
       );
-      expect(e, isA<JevBadRequestException>());
+      expect(e, isA<SystemOneBadRequestException>());
       expect(e.statusCode, 400);
       expect(e.requestId, 'req-400');
     });
 
-    test('401 maps to JevAuthenticationException', () async {
+    test('401 maps to SystemOneAuthenticationException', () async {
       final e = await callWithStatus(
         401,
         headers: {'x-typesafe-request-id': 'req-401'},
       );
-      expect(e, isA<JevAuthenticationException>());
+      expect(e, isA<SystemOneAuthenticationException>());
       expect(e.statusCode, 401);
       expect(e.requestId, 'req-401');
     });
 
-    test('403 maps to JevPermissionDeniedException', () async {
+    test('403 maps to SystemOnePermissionDeniedException', () async {
       final e = await callWithStatus(
         403,
         headers: {'x-typesafe-request-id': 'req-403'},
       );
-      expect(e, isA<JevPermissionDeniedException>());
+      expect(e, isA<SystemOnePermissionDeniedException>());
       expect(e.statusCode, 403);
       expect(e.requestId, 'req-403');
     });
 
-    test('404 maps to JevNotFoundException', () async {
+    test('404 maps to SystemOneNotFoundException', () async {
       final e = await callWithStatus(
         404,
         headers: {'x-typesafe-request-id': 'req-404'},
       );
-      expect(e, isA<JevNotFoundException>());
+      expect(e, isA<SystemOneNotFoundException>());
       expect(e.statusCode, 404);
       expect(e.requestId, 'req-404');
     });
 
-    test('422 maps to JevValidationException', () async {
+    test('422 maps to SystemOneValidationException', () async {
       final e = await callWithStatus(
         422,
         headers: {'x-typesafe-request-id': 'req-422'},
       );
-      expect(e, isA<JevValidationException>());
+      expect(e, isA<SystemOneValidationException>());
       expect(e.statusCode, 422);
       expect(e.requestId, 'req-422');
     });
 
-    test('429 maps to JevRateLimitException', () async {
+    test('429 maps to SystemOneRateLimitException', () async {
       final e = await callWithStatus(
         429,
         headers: {'x-typesafe-request-id': 'req-429'},
       );
-      expect(e, isA<JevRateLimitException>());
+      expect(e, isA<SystemOneRateLimitException>());
       expect(e.statusCode, 429);
       expect(e.requestId, 'req-429');
     });
 
-    test('529 maps to JevOverloadedException', () async {
+    test('529 maps to SystemOneOverloadedException', () async {
       final e = await callWithStatus(
         529,
         headers: {'x-typesafe-request-id': 'req-529'},
       );
-      expect(e, isA<JevOverloadedException>());
+      expect(e, isA<SystemOneOverloadedException>());
       expect(e.statusCode, 529);
       expect(e.requestId, 'req-529');
     });
 
-    test('503 maps to JevServerException', () async {
+    test('503 maps to SystemOneServerException', () async {
       final e = await callWithStatus(
         503,
         headers: {'x-typesafe-request-id': 'req-503'},
       );
-      expect(e, isA<JevServerException>());
+      expect(e, isA<SystemOneServerException>());
       expect(e.statusCode, 503);
       expect(e.requestId, 'req-503');
     });
 
-    test('408 maps to JevServerException', () async {
+    test('408 maps to SystemOneServerException', () async {
       final e = await callWithStatus(
         408,
         headers: {'x-typesafe-request-id': 'req-408'},
       );
-      expect(e, isA<JevServerException>());
+      expect(e, isA<SystemOneServerException>());
       expect(e.statusCode, 408);
       expect(e.requestId, 'req-408');
     });
@@ -231,15 +234,15 @@ void main() {
 
     test('429 with a Retry-After header populates retryAfter', () async {
       final e = await callWithStatus(429, headers: {'Retry-After': '2'});
-      expect(e, isA<JevRateLimitException>());
+      expect(e, isA<SystemOneRateLimitException>());
       expect(
-        (e as JevRateLimitException).retryAfter,
+        (e as SystemOneRateLimitException).retryAfter,
         const Duration(seconds: 2),
       );
     });
   });
 
-  group('JevClient retry behavior', () {
+  group('SystemOneClient retry behavior', () {
     test('retries a 429 and succeeds on the second attempt', () async {
       var callCount = 0;
       final mockClient = MockClient((request) async {
@@ -250,7 +253,7 @@ void main() {
         return http.Response(jsonEncode(_quickstartJson), 200);
       });
 
-      final client = JevClient(
+      final client = SystemOneClient(
         apiKey: 'k',
         httpClient: mockClient,
         retryPolicy: const RetryPolicy(
@@ -260,7 +263,7 @@ void main() {
       );
 
       final response = await client.systemOne(
-        SystemOneRequest(state: JevState.text('s'), questions: {}),
+        SystemOneRequest(state: SystemOneState.text('s'), questions: {}),
       );
 
       expect(callCount, 2);
@@ -274,7 +277,7 @@ void main() {
         return http.Response('', 503);
       });
 
-      final client = JevClient(
+      final client = SystemOneClient(
         apiKey: 'k',
         httpClient: mockClient,
         retryPolicy: const RetryPolicy(
@@ -285,9 +288,9 @@ void main() {
 
       await expectLater(
         client.systemOne(
-          SystemOneRequest(state: JevState.text('s'), questions: {}),
+          SystemOneRequest(state: SystemOneState.text('s'), questions: {}),
         ),
-        throwsA(isA<JevServerException>()),
+        throwsA(isA<SystemOneServerException>()),
       );
       expect(callCount, 2);
     });
@@ -299,7 +302,7 @@ void main() {
         return http.Response('', 400);
       });
 
-      final client = JevClient(
+      final client = SystemOneClient(
         apiKey: 'k',
         httpClient: mockClient,
         retryPolicy: const RetryPolicy(
@@ -310,15 +313,15 @@ void main() {
 
       await expectLater(
         client.systemOne(
-          SystemOneRequest(state: JevState.text('s'), questions: {}),
+          SystemOneRequest(state: SystemOneState.text('s'), questions: {}),
         ),
-        throwsA(isA<JevBadRequestException>()),
+        throwsA(isA<SystemOneBadRequestException>()),
       );
       expect(callCount, 1);
     });
   });
 
-  group('JevClient.fromEnvironment', () {
+  group('SystemOneClient.fromEnvironment', () {
     Future<http.Request> capture(
       Map<String, String> environment, {
       Uri? baseUrl,
@@ -328,13 +331,13 @@ void main() {
         sent = request;
         return http.Response(jsonEncode(_quickstartJson), 200);
       });
-      final client = JevClient.fromEnvironment(
+      final client = SystemOneClient.fromEnvironment(
         baseUrl: baseUrl,
         environment: environment,
         httpClient: mockClient,
       );
       await client.systemOne(
-        SystemOneRequest(state: JevState.text('s'), questions: {}),
+        SystemOneRequest(state: SystemOneState.text('s'), questions: {}),
       );
       return sent;
     }
@@ -370,10 +373,10 @@ void main() {
     });
   });
 
-  group('JevClient.close', () {
+  group('SystemOneClient.close', () {
     test('does not close a caller-supplied http.Client', () {
       final spy = _SpyHttpClient();
-      final client = JevClient(apiKey: 'k', httpClient: spy);
+      final client = SystemOneClient(apiKey: 'k', httpClient: spy);
 
       client.close();
 
@@ -381,29 +384,26 @@ void main() {
     });
   });
 
-  group('JevClient response parsing failures', () {
-    test(
-      'a 200 response with invalid JSON throws JevResponseFormatException',
-      () async {
-        final mockClient = MockClient((request) async {
-          return http.Response('not json', 200);
-        });
+  group('SystemOneClient response parsing failures', () {
+    test('a 200 response with invalid JSON throws SystemOneResponseFormatException', () async {
+      final mockClient = MockClient((request) async {
+        return http.Response('not json', 200);
+      });
 
-        final client = JevClient(apiKey: 'k', httpClient: mockClient);
+      final client = SystemOneClient(apiKey: 'k', httpClient: mockClient);
 
-        await expectLater(
-          client.systemOne(
-            SystemOneRequest(state: JevState.text('s'), questions: {}),
+      await expectLater(
+        client.systemOne(
+          SystemOneRequest(state: SystemOneState.text('s'), questions: {}),
+        ),
+        throwsA(
+          isA<SystemOneResponseFormatException>().having(
+            (e) => e.rawBody,
+            'rawBody',
+            'not json',
           ),
-          throwsA(
-            isA<JevResponseFormatException>().having(
-              (e) => e.rawBody,
-              'rawBody',
-              'not json',
-            ),
-          ),
-        );
-      },
-    );
+        ),
+      );
+    });
   });
 }

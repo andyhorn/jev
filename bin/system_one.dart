@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:jev/src/cli/jev_cli.dart';
+import 'package:system_one/src/cli/system_one_cli.dart';
 
 Future<void> main(List<String> arguments) async {
-  exitCode = await runJev(
+  exitCode = await runSystemOne(
     arguments,
     stdin: stdin,
     out: stdout,

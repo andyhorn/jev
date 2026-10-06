@@ -1,10 +1,10 @@
-import 'package:jev/src/jev_exception.dart';
+import 'package:system_one/src/system_one_exception.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('JevApiException.requestId', () {
+  group('SystemOneApiException.requestId', () {
     test('reads the x-typesafe-request-id header', () {
-      final e = JevBadRequestException(
+      final e = SystemOneBadRequestException(
         statusCode: 400,
         headers: {'x-typesafe-request-id': 'req-123'},
       );
@@ -13,15 +13,15 @@ void main() {
     });
 
     test('is null when the header is absent', () {
-      final e = JevBadRequestException(statusCode: 400, headers: {});
+      final e = SystemOneBadRequestException(statusCode: 400, headers: {});
 
       expect(e.requestId, isNull);
     });
   });
 
   group('toString', () {
-    test('JevApiException includes statusCode and requestId', () {
-      final e = JevNotFoundException(
+    test('SystemOneApiException includes statusCode and requestId', () {
+      final e = SystemOneNotFoundException(
         statusCode: 404,
         headers: {'x-typesafe-request-id': 'req-404'},
       );
@@ -30,8 +30,8 @@ void main() {
       expect(e.toString(), contains('req-404'));
     });
 
-    test('JevRateLimitException includes retryAfter', () {
-      final e = JevRateLimitException(
+    test('SystemOneRateLimitException includes retryAfter', () {
+      final e = SystemOneRateLimitException(
         statusCode: 429,
         headers: const {},
         retryAfter: const Duration(seconds: 2),
@@ -40,22 +40,22 @@ void main() {
       expect(e.toString(), contains('retryAfter'));
     });
 
-    test('JevConnectionException includes cause', () {
-      final e = JevConnectionException(cause: 'boom');
+    test('SystemOneConnectionException includes cause', () {
+      final e = SystemOneConnectionException(cause: 'boom');
 
       expect(e.toString(), contains('boom'));
     });
 
-    test('JevResponseFormatException includes rawBody', () {
-      final e = JevResponseFormatException(rawBody: 'not json');
+    test('SystemOneResponseFormatException includes rawBody', () {
+      final e = SystemOneResponseFormatException(rawBody: 'not json');
 
       expect(e.toString(), contains('not json'));
     });
   });
 
-  group('JevApiException.body', () {
+  group('SystemOneApiException.body', () {
     test('may carry a decoded JSON body', () {
-      final e = JevBadRequestException(
+      final e = SystemOneBadRequestException(
         statusCode: 400,
         headers: const {},
         body: {'error': 'bad request'},
@@ -65,7 +65,7 @@ void main() {
     });
 
     test('may carry a raw string body', () {
-      final e = JevBadRequestException(
+      final e = SystemOneBadRequestException(
         statusCode: 400,
         headers: const {},
         body: 'plain text',
@@ -75,7 +75,10 @@ void main() {
     });
 
     test('may be null', () {
-      final e = JevBadRequestException(statusCode: 400, headers: const {});
+      final e = SystemOneBadRequestException(
+        statusCode: 400,
+        headers: const {},
+      );
 
       expect(e.body, isNull);
     });

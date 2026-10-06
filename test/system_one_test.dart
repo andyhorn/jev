@@ -1,4 +1,4 @@
-import 'package:jev/jev.dart';
+import 'package:system_one/system_one.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -11,8 +11,8 @@ void main() {
     final answer = Answer.fromJson({'type': 'noul', 'noul': 1.0});
     expect(answer, isA<NoulAnswer>());
 
-    expect(JevClient, isA<Type>());
-    expect(JevApiException, isA<Type>());
+    expect(SystemOneClient, isA<Type>());
+    expect(SystemOneApiException, isA<Type>());
     expect(RetryPolicy.none.maxRetries, 0);
   });
 }

@@ -14,7 +14,7 @@ abstract final class JevModel {
 /// named [questions] to ask about it.
 class SystemOneRequest {
   /// The content to evaluate.
-  final JevState state;
+  final SystemOneState state;
 
   /// The model alias to use, e.g. [JevModel.latest].
   final String model;

@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:jev/src/cli/jev_cli.dart';
-import 'package:jev/src/version.dart';
+import 'package:system_one/src/cli/system_one_cli.dart';
+import 'package:system_one/src/version.dart';
 import 'package:test/test.dart';
 
 class _Result {
@@ -21,14 +21,14 @@ Future<_Result> _run(
   String stdinText = '',
   http.Client? httpClient,
 }) async {
-  final dir = Directory.systemTemp.createTempSync('jev_cli_run');
+  final dir = Directory.systemTemp.createTempSync('system_one_cli_run');
   addTearDown(() => dir.deleteSync(recursive: true));
   final outFile = File('${dir.path}/out');
   final errFile = File('${dir.path}/err');
   final out = outFile.openWrite();
   final err = errFile.openWrite();
 
-  final code = await runJev(
+  final code = await runSystemOne(
     args,
     stdin: Stream.value(utf8.encode(stdinText)),
     out: out,
@@ -63,14 +63,14 @@ void main() {
     final result = await _run(['--version']);
 
     expect(result.code, 0);
-    expect(result.out.trim(), 'jev $jevVersion');
+    expect(result.out.trim(), 'system_one $systemOneVersion');
   });
 
   test('--help prints usage', () async {
     final result = await _run(['--help']);
 
     expect(result.code, 0);
-    expect(result.out, contains('Usage: jev'));
+    expect(result.out, contains('Usage: system_one'));
   });
 
   test('sends a text state and noul question, then prints answers', () async {
@@ -110,7 +110,7 @@ void main() {
 
   test('loads choice and score questions from a questions file', () async {
     late http.Request sent;
-    final dir = Directory.systemTemp.createTempSync('jev_cli_questions');
+    final dir = Directory.systemTemp.createTempSync('system_one_cli_questions');
     addTearDown(() => dir.deleteSync(recursive: true));
     final file = File('${dir.path}/questions.json')
       ..writeAsStringSync(

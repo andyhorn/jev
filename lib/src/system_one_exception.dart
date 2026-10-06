@@ -1,17 +1,17 @@
-/// The exception hierarchy for the `jev` client.
+/// The exception hierarchy for the `system_one` client.
 ///
-/// All exceptions thrown by [JevClient] implement this sealed base.
+/// All exceptions thrown by [SystemOneClient] implement this sealed base.
 library;
 
-/// The base type for every exception thrown by the `jev` client.
-sealed class JevException implements Exception {}
+/// The base type for every exception thrown by the `system_one` client.
+sealed class SystemOneException implements Exception {}
 
 /// The API responded with a non-2xx HTTP status code.
 ///
 /// The exact shape of an error response body is undocumented by the
 /// System One API, so [body] is intentionally left untyped — never
 /// destructure it into named fields.
-class JevApiException extends JevException {
+class SystemOneApiException extends SystemOneException {
   /// The HTTP status code returned by the API.
   final int statusCode;
 
@@ -23,7 +23,11 @@ class JevApiException extends JevException {
   /// The response headers, with keys normalized to lowercase.
   final Map<String, String> headers;
 
-  JevApiException({required this.statusCode, this.body, required this.headers});
+  SystemOneApiException({
+    required this.statusCode,
+    this.body,
+    required this.headers,
+  });
 
   /// The `x-typesafe-request-id` response header, if present.
   String? get requestId => headers['x-typesafe-request-id'];
@@ -37,8 +41,8 @@ class JevApiException extends JevException {
 }
 
 /// The API rejected the request as malformed (HTTP 400).
-final class JevBadRequestException extends JevApiException {
-  JevBadRequestException({
+final class SystemOneBadRequestException extends SystemOneApiException {
+  SystemOneBadRequestException({
     required super.statusCode,
     super.body,
     required super.headers,
@@ -46,8 +50,8 @@ final class JevBadRequestException extends JevApiException {
 }
 
 /// The API key was missing or invalid (HTTP 401).
-final class JevAuthenticationException extends JevApiException {
-  JevAuthenticationException({
+final class SystemOneAuthenticationException extends SystemOneApiException {
+  SystemOneAuthenticationException({
     required super.statusCode,
     super.body,
     required super.headers,
@@ -55,8 +59,8 @@ final class JevAuthenticationException extends JevApiException {
 }
 
 /// The API key was valid but lacks permission for this request (HTTP 403).
-final class JevPermissionDeniedException extends JevApiException {
-  JevPermissionDeniedException({
+final class SystemOnePermissionDeniedException extends SystemOneApiException {
+  SystemOnePermissionDeniedException({
     required super.statusCode,
     super.body,
     required super.headers,
@@ -64,8 +68,8 @@ final class JevPermissionDeniedException extends JevApiException {
 }
 
 /// The requested resource does not exist (HTTP 404).
-final class JevNotFoundException extends JevApiException {
-  JevNotFoundException({
+final class SystemOneNotFoundException extends SystemOneApiException {
+  SystemOneNotFoundException({
     required super.statusCode,
     super.body,
     required super.headers,
@@ -73,8 +77,8 @@ final class JevNotFoundException extends JevApiException {
 }
 
 /// The request failed semantic validation (HTTP 422).
-final class JevValidationException extends JevApiException {
-  JevValidationException({
+final class SystemOneValidationException extends SystemOneApiException {
+  SystemOneValidationException({
     required super.statusCode,
     super.body,
     required super.headers,
@@ -82,13 +86,13 @@ final class JevValidationException extends JevApiException {
 }
 
 /// The caller has exceeded a rate limit (HTTP 429).
-final class JevRateLimitException extends JevApiException {
+final class SystemOneRateLimitException extends SystemOneApiException {
   /// How long the caller should wait before retrying, parsed from the
   /// `Retry-After` (seconds) or `retry-after-ms` (milliseconds) response
   /// header, if either was present.
   final Duration? retryAfter;
 
-  JevRateLimitException({
+  SystemOneRateLimitException({
     required super.statusCode,
     super.body,
     required super.headers,
@@ -103,8 +107,8 @@ final class JevRateLimitException extends JevApiException {
 }
 
 /// The API is temporarily overloaded (HTTP 529).
-final class JevOverloadedException extends JevApiException {
-  JevOverloadedException({
+final class SystemOneOverloadedException extends SystemOneApiException {
+  SystemOneOverloadedException({
     required super.statusCode,
     super.body,
     required super.headers,
@@ -113,8 +117,8 @@ final class JevOverloadedException extends JevApiException {
 
 /// The fallback for any HTTP status code not explicitly mapped, which in
 /// practice is typically any other 5xx status code or a request timeout (HTTP 408).
-final class JevServerException extends JevApiException {
-  JevServerException({
+final class SystemOneServerException extends SystemOneApiException {
+  SystemOneServerException({
     required super.statusCode,
     super.body,
     required super.headers,
@@ -122,30 +126,30 @@ final class JevServerException extends JevApiException {
 }
 
 /// A network-level failure occurred before an HTTP response was received.
-class JevConnectionException extends JevException {
+class SystemOneConnectionException extends SystemOneException {
   /// The underlying error that caused this exception, if any.
   final Object? cause;
 
-  JevConnectionException({this.cause});
+  SystemOneConnectionException({this.cause});
 
   @override
   String toString() => '$runtimeType(${cause != null ? 'cause: $cause' : ''})';
 }
 
 /// A request did not complete within the configured timeout.
-final class JevTimeoutException extends JevConnectionException {
-  JevTimeoutException({super.cause});
+final class SystemOneTimeoutException extends SystemOneConnectionException {
+  SystemOneTimeoutException({super.cause});
 }
 
 /// A successful (2xx) response could not be parsed as the expected shape.
-final class JevResponseFormatException extends JevException {
+final class SystemOneResponseFormatException extends SystemOneException {
   /// The raw, undecoded response body that failed to parse.
   final String rawBody;
 
   /// The underlying decode or parse error, if any.
   final Object? cause;
 
-  JevResponseFormatException({required this.rawBody, this.cause});
+  SystemOneResponseFormatException({required this.rawBody, this.cause});
 
   @override
   String toString() => '$runtimeType(cause: $cause, rawBody: $rawBody)';
