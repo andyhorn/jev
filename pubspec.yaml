@@ -1,6 +1,6 @@
 name: system_one
 description: An unofficial Dart client for the System One API (TypeSafe AI, Ollama, and other compatible servers).
-version: 0.2.0
+version: 0.3.0
 publish_to: none
 repository: https://github.com/andyhorn/system_one_dart
 executables:
