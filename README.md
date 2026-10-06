@@ -68,6 +68,22 @@ See `example/jev_example.dart` for a fuller, runnable example that
 demonstrates all three question types (`NoulQuestion`, `ChoiceQuestion`,
 `ScoreQuestion`) and exhaustive pattern matching over the `Answer` types.
 
+## Command-line tool
+
+Each [release](https://github.com/andyhorn/jev/releases) attaches a compiled
+`jev` executable for Linux, macOS (arm64) and Windows. It reads the API key
+from `TYPESAFE_API_KEY`:
+
+```bash
+jev --state "I've been charged twice and need this fixed today." \
+    --noul 'urgency=Does this message express urgency?'
+
+# Choice and score questions come from a JSON file in the API wire format.
+echo '{"subject": "Refund"}' | jev -f - --state-format json -q questions.json
+```
+
+Run `jev --help` for all options. From a checkout, use `dart run jev`.
+
 ## AI agent skill
 
 TypeSafe publishes an [agent skill](https://github.com/typesafe-ai/skills)

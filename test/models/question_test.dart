@@ -2,6 +2,7 @@ import 'package:jev/src/models/question.dart';
 import 'package:test/test.dart';
 
 void main() {
+  questionFromJsonTests();
   group('NoulQuestion', () {
     test('serializes without a criteria key when none is given', () {
       final question = NoulQuestion('Does this message express urgency?');
@@ -159,6 +160,44 @@ void main() {
       expect(
         () => ScoreQuestion('instructions', criteria: criteria),
         returnsNormally,
+      );
+    });
+  });
+}
+
+void questionFromJsonTests() {
+  group('Question.fromJson', () {
+    test('round-trips every question type', () {
+      final questions = <Question>[
+        NoulQuestion('a', trueCriteria: 't', falseCriteria: 'f'),
+        NoulQuestion('b'),
+        ChoiceQuestion('c', criteria: {'x': null, 'y': 'why'}),
+        ScoreQuestion('d', criteria: ['low', 'high']),
+      ];
+
+      for (final question in questions) {
+        expect(
+          Question.fromJson(question.toJson()).toJson(),
+          question.toJson(),
+        );
+      }
+    });
+
+    test('throws FormatException for an unknown type', () {
+      expect(
+        () => Question.fromJson({'type': 'nope', 'instructions': 'x'}),
+        throwsFormatException,
+      );
+    });
+
+    test('throws FormatException for mis-shaped criteria', () {
+      expect(
+        () => Question.fromJson({'type': 'score', 'criteria': {}}),
+        throwsFormatException,
+      );
+      expect(
+        () => Question.fromJson({'type': 'choice', 'criteria': []}),
+        throwsFormatException,
       );
     });
   });

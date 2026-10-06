@@ -11,6 +11,48 @@ sealed class Question {
 
   const Question(this.instructions);
 
+  /// Parses a [Question] from its wire-format JSON representation,
+  /// dispatching on `json['type']`.
+  ///
+  /// Throws a [FormatException] if `type` is not one of `"noul"`,
+  /// `"choice"`, or `"score"`, or if `criteria` has the wrong shape for
+  /// that type.
+  factory Question.fromJson(Map<String, dynamic> json) {
+    final type = json['type'];
+    final instructions = json['instructions'];
+    final criteria = json['criteria'];
+
+    switch (type) {
+      case 'noul':
+        if (criteria == null) {
+          return NoulQuestion(instructions);
+        }
+        if (criteria is! Map) {
+          throw const FormatException('noul criteria must be an object');
+        }
+        return NoulQuestion(
+          instructions,
+          trueCriteria: criteria['true'],
+          falseCriteria: criteria['false'],
+        );
+      case 'choice':
+        if (criteria is! Map) {
+          throw const FormatException('choice criteria must be an object');
+        }
+        return ChoiceQuestion(
+          instructions,
+          criteria: Map<String, Object?>.from(criteria),
+        );
+      case 'score':
+        if (criteria is! List) {
+          throw const FormatException('score criteria must be an array');
+        }
+        return ScoreQuestion(instructions, criteria: List.of(criteria));
+      default:
+        throw FormatException('Unrecognized Question type: $type');
+    }
+  }
+
   /// Serializes this question into its wire-format JSON representation.
   Map<String, Object?> toJson();
 }
