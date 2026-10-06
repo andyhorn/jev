@@ -24,3 +24,12 @@ describe the HTTP API, Python SDK, and JavaScript SDK. When working in
   an error case, etc.) → the skill's API reference and confidence/primitive
   docs are still the source of truth for what the underlying service
   expects; the client's job is to model that faithfully.
+
+## Commits and releases
+
+Use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`,
+`fix:`, `feat!:` / `BREAKING CHANGE:`). Squash-merge PRs with a conventional
+title (enforced by `.github/workflows/pr-title.yaml`). Release Please opens a
+release PR on `main` that bumps `pubspec.yaml` and `CHANGELOG.md`; merging it
+tags `vX.Y.Z`, publishes the GitHub Release, and attaches the compiled
+`bin/jev.dart` executables (Linux, macOS arm64, Windows).
