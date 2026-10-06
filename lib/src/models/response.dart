@@ -27,6 +27,14 @@ class Usage {
       outputTokens: json['output_tokens'] as int?,
     );
   }
+
+  /// Serializes this usage into its wire-format JSON representation.
+  ///
+  /// Both keys are always present, `null` when the API did not report a
+  /// value. The inverse of [Usage.fromJson].
+  Map<String, Object?> toJson() {
+    return {'input_tokens': inputTokens, 'output_tokens': outputTokens};
+  }
 }
 
 /// The top-level response envelope from `POST /v1/systemone`.
@@ -59,5 +67,16 @@ class SystemOneResponse {
       answers: answers ?? {},
       usage: Usage.fromJson(json['usage'] as Map<String, dynamic>?),
     );
+  }
+
+  /// Serializes this response into its wire-format JSON representation.
+  ///
+  /// The inverse of [SystemOneResponse.fromJson].
+  Map<String, Object?> toJson() {
+    return {
+      'model': model,
+      'answers': answers.map((key, value) => MapEntry(key, value.toJson())),
+      'usage': usage.toJson(),
+    };
   }
 }

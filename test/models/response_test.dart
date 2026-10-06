@@ -101,4 +101,47 @@ void main() {
       expect(usage.outputTokens, isNull);
     });
   });
+
+  group('Usage.toJson', () {
+    test('always includes both keys, null when absent', () {
+      expect(const Usage(inputTokens: 5).toJson(), {
+        'input_tokens': 5,
+        'output_tokens': null,
+      });
+    });
+  });
+
+  group('SystemOneResponse.toJson', () {
+    test('round-trips the full quickstart example', () {
+      final json = {
+        'model': 'jev-1.13.0',
+        'answers': {
+          'urgency': {'type': 'noul', 'noul': 0.97},
+        },
+        'usage': {'input_tokens': 142, 'output_tokens': 8},
+      };
+
+      expect(SystemOneResponse.fromJson(json).toJson(), json);
+    });
+
+    test('emits null usage fields when the API omitted usage', () {
+      final json = {
+        'model': 'jev-1.13.0',
+        'answers': {
+          'severity': {
+            'type': 'score',
+            'score': 1.43,
+            'confidence': 0.71,
+            'legend': {'0': 'cosmetic', '1': 'workaround', '2': 'blocking'},
+            'probabilities': {'0': 0.12, '1': 0.33, '2': 0.55},
+          },
+        },
+      };
+
+      expect(SystemOneResponse.fromJson(json).toJson(), {
+        ...json,
+        'usage': {'input_tokens': null, 'output_tokens': null},
+      });
+    });
+  });
 }

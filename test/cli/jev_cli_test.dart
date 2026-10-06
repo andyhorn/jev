@@ -208,4 +208,91 @@ void main() {
     expect(result.err, contains('401'));
     expect(result.err, contains('bad key'));
   });
+
+  group('--json', () {
+    test('prints the response as one line of machine-readable JSON', () async {
+      final result = await _run([
+        '-s',
+        'Please hurry!',
+        '-n',
+        'urgency=Is this urgent?',
+        '--json',
+      ], httpClient: _okClient((_) {}));
+
+      expect(result.code, 0);
+      expect(result.out.trim().split('\n'), hasLength(1));
+      expect(jsonDecode(result.out), {
+        'model': 'jev-1.13.0',
+        'answers': {
+          'urgency': {'type': 'noul', 'noul': 0.97},
+        },
+        'usage': {'input_tokens': 142, 'output_tokens': 8},
+      });
+    });
+
+    test('emits every answer type in wire format', () async {
+      final body = jsonEncode({
+        'model': 'jev-1.13.0',
+        'answers': {
+          'urgency': {'type': 'noul', 'noul': 0.97},
+          'department': {
+            'type': 'choice',
+            'choice': 'shipping',
+            'confidence': 0.82,
+            'probabilities': {
+              'returns': 0.05,
+              'shipping': 0.82,
+              'billing': 0.13,
+            },
+          },
+          'severity': {
+            'type': 'score',
+            'score': 1.43,
+            'confidence': 0.71,
+            'legend': {'0': 'cosmetic', '1': 'workaround', '2': 'blocking'},
+            'probabilities': {'0': 0.12, '1': 0.33, '2': 0.55},
+          },
+        },
+        'usage': {'input_tokens': 210, 'output_tokens': 24},
+      });
+      final client = MockClient((_) async => http.Response(body, 200));
+
+      final result = await _run([
+        '-s',
+        'x',
+        '-n',
+        'a=b',
+        '--json',
+      ], httpClient: client);
+
+      expect(result.code, 0);
+      expect(jsonDecode(result.out), jsonDecode(body));
+    });
+
+    test('leaves failures on stderr with the existing exit codes', () async {
+      final client = MockClient(
+        (_) async => http.Response(jsonEncode({'error': 'bad key'}), 401),
+      );
+
+      final result = await _run([
+        '-s',
+        'x',
+        '-n',
+        'a=b',
+        '--json',
+      ], httpClient: client);
+
+      expect(result.code, 1);
+      expect(result.out, isEmpty);
+      expect(result.err, contains('bad key'));
+    });
+
+    test('usage errors still exit 64 without writing JSON', () async {
+      final result = await _run(['--json', '-n', 'a=b']);
+
+      expect(result.code, 64);
+      expect(result.out, isEmpty);
+      expect(result.err, contains('--state'));
+    });
+  });
 }

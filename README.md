@@ -82,6 +82,17 @@ jev --state "I've been charged twice and need this fixed today." \
 echo '{"subject": "Refund"}' | jev -f - --state-format json -q questions.json
 ```
 
+The `--json` flag prints the full response (answers, usage, model) as one
+line of machine-readable JSON, for piping into tools like `jq`:
+
+```bash
+jev --state "$MESSAGE" --noul 'urgency=Does this express urgency?' --json \
+    | jq '.answers.urgency.noul'
+```
+
+Errors always go to stderr with a non-zero exit code, so stdout stays valid
+JSON even when a call fails.
+
 Run `jev --help` for all options. From a checkout, use `dart run jev`.
 
 ## AI agent skill
