@@ -1,26 +1,28 @@
-import 'package:jev/jev.dart';
+import 'dart:io';
+
+import 'package:system_one/system_one.dart';
 
 /// Demonstrates a single System One call asking a Noul, Choice, and Score
 /// question about a support-ticket-style `state`.
 ///
-/// Requires a real System One API key in the `TYPESAFE_API_KEY` environment
+/// Requires a real System One API key in the `SYSTEM_ONE_API_KEY` environment
 /// variable — this example is illustrative only and is not run by CI.
 Future<void> main() async {
-  final JevClient client;
-  try {
-    client = JevClient.fromEnvironment();
-  } on StateError catch (e) {
-    print('Cannot run example: ${e.message}');
+  if (Platform.environment['SYSTEM_ONE_API_KEY']?.isNotEmpty != true) {
+    print('Cannot run example: set SYSTEM_ONE_API_KEY to a hosted API key.');
     return;
   }
+
+  final client = SystemOneClient.fromEnvironment();
 
   try {
     final response = await client.systemOne(
       SystemOneRequest(
-        state: JevState.text(
+        state: SystemOneState.text(
           "Hi, I've been trying to connect my Stripe account for two days "
           "and keep getting a 500 error. This is urgent, I'm losing sales.",
         ),
+        model: 'jev-latest',
         questions: {
           'urgency': NoulQuestion('Does this message express urgency?'),
           'department': ChoiceQuestion(
@@ -56,7 +58,7 @@ Future<void> main() async {
       'output=${response.usage.outputTokens}',
     );
     print('model: ${response.model}');
-  } on JevException catch (e) {
+  } on SystemOneException catch (e) {
     print('System One request failed: $e');
   } finally {
     client.close();

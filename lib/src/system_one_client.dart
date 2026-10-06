@@ -4,13 +4,13 @@ import 'dart:io' show Platform;
 
 import 'package:http/http.dart' as http;
 
-import 'jev_exception.dart';
+import 'system_one_exception.dart';
 import 'models/request.dart';
 import 'models/response.dart';
 import 'retry_policy.dart';
 
-/// A client for the TypeSafe AI System One API.
-class JevClient {
+/// A client for the System One API.
+class SystemOneClient {
   /// The hosted TypeSafe API, targeted when no `baseUrl` is supplied.
   static final defaultBaseUrl = Uri.parse('https://api.typesafe.ai');
 
@@ -27,7 +27,7 @@ class JevClient {
   /// request; when absent, requests carry no `Authorization` header. The
   /// hosted API rejects unauthenticated requests, but a custom or local
   /// [baseUrl] (e.g. an Ollama server) may need no key at all.
-  JevClient({
+  SystemOneClient({
     String? apiKey,
     Uri? baseUrl,
     // If null, this instance creates and owns an internal [http.Client],
@@ -48,11 +48,11 @@ class JevClient {
   /// Creates a client from the process environment (or [environment], for
   /// tests).
   ///
-  /// `TYPESAFE_API_KEY` is used as the bearer token when set.
-  /// `TYPESAFE_BASE_URL` overrides the endpoint when [baseUrl] is not given.
+  /// `SYSTEM_ONE_API_KEY` is used as the bearer token when set.
+  /// `SYSTEM_ONE_BASE_URL` overrides the endpoint when [baseUrl] is not given.
   /// Neither variable is required: without a key, requests simply carry no
   /// `Authorization` header, and the hosted API answers them with a 401.
-  factory JevClient.fromEnvironment({
+  factory SystemOneClient.fromEnvironment({
     Uri? baseUrl,
     Map<String, String>? environment,
     http.Client? httpClient,
@@ -60,9 +60,9 @@ class JevClient {
     RetryPolicy retryPolicy = const RetryPolicy(),
   }) {
     final env = environment ?? Platform.environment;
-    final baseUrlOverride = env['TYPESAFE_BASE_URL'];
-    return JevClient(
-      apiKey: env['TYPESAFE_API_KEY'],
+    final baseUrlOverride = env['SYSTEM_ONE_BASE_URL'];
+    return SystemOneClient(
+      apiKey: env['SYSTEM_ONE_API_KEY'],
       baseUrl:
           baseUrl ??
           ((baseUrlOverride == null || baseUrlOverride.isEmpty)
@@ -90,21 +90,24 @@ class JevClient {
 
     var attempt = 0;
     while (true) {
-      JevException thrownException;
+      SystemOneException thrownException;
       try {
         final response = await _httpClient
             .post(uri, headers: headers, body: body)
-            .timeout(_timeout, onTimeout: () => throw JevTimeoutException());
+            .timeout(
+              _timeout,
+              onTimeout: () => throw SystemOneTimeoutException(),
+            );
 
         if (response.statusCode >= 200 && response.statusCode < 300) {
           return _parseSuccess(response);
         }
 
         thrownException = _mapErrorResponse(response);
-      } on JevException catch (e) {
+      } on SystemOneException catch (e) {
         thrownException = e;
       } catch (e) {
-        thrownException = JevConnectionException(cause: e);
+        thrownException = SystemOneConnectionException(cause: e);
       }
 
       final retryDelay = _retryDelayFor(thrownException, attempt);
@@ -119,21 +122,21 @@ class JevClient {
   /// Returns the delay to wait before retrying after [exception], or `null`
   /// if [exception] should not be retried (either it isn't a retryable kind,
   /// or no attempts remain).
-  Duration? _retryDelayFor(JevException exception, int attempt) {
+  Duration? _retryDelayFor(SystemOneException exception, int attempt) {
     if (attempt >= _retryPolicy.maxRetries) {
       return null;
     }
 
-    if (exception is JevRateLimitException) {
+    if (exception is SystemOneRateLimitException) {
       return exception.retryAfter ?? _retryPolicy.delayForAttempt(attempt);
     }
 
-    if (exception is JevApiException &&
+    if (exception is SystemOneApiException &&
         _retryPolicy.shouldRetryStatusCode(exception.statusCode)) {
       return _retryPolicy.delayForAttempt(attempt);
     }
 
-    if (exception is JevConnectionException) {
+    if (exception is SystemOneConnectionException) {
       return _retryPolicy.delayForAttempt(attempt);
     }
 
@@ -146,11 +149,11 @@ class JevClient {
       final json = jsonDecode(rawBody) as Map<String, dynamic>;
       return SystemOneResponse.fromJson(json);
     } catch (e) {
-      throw JevResponseFormatException(rawBody: rawBody, cause: e);
+      throw SystemOneResponseFormatException(rawBody: rawBody, cause: e);
     }
   }
 
-  JevApiException _mapErrorResponse(http.Response response) {
+  SystemOneApiException _mapErrorResponse(http.Response response) {
     final headers = <String, String>{
       for (final entry in response.headers.entries)
         entry.key.toLowerCase(): entry.value,
@@ -162,50 +165,50 @@ class JevClient {
     final statusCode = response.statusCode;
     switch (statusCode) {
       case 400:
-        return JevBadRequestException(
+        return SystemOneBadRequestException(
           statusCode: statusCode,
           body: body,
           headers: headers,
         );
       case 401:
-        return JevAuthenticationException(
+        return SystemOneAuthenticationException(
           statusCode: statusCode,
           body: body,
           headers: headers,
         );
       case 403:
-        return JevPermissionDeniedException(
+        return SystemOnePermissionDeniedException(
           statusCode: statusCode,
           body: body,
           headers: headers,
         );
       case 404:
-        return JevNotFoundException(
+        return SystemOneNotFoundException(
           statusCode: statusCode,
           body: body,
           headers: headers,
         );
       case 422:
-        return JevValidationException(
+        return SystemOneValidationException(
           statusCode: statusCode,
           body: body,
           headers: headers,
         );
       case 429:
-        return JevRateLimitException(
+        return SystemOneRateLimitException(
           statusCode: statusCode,
           body: body,
           headers: headers,
           retryAfter: _parseRetryAfter(headers),
         );
       case 529:
-        return JevOverloadedException(
+        return SystemOneOverloadedException(
           statusCode: statusCode,
           body: body,
           headers: headers,
         );
       default:
-        return JevServerException(
+        return SystemOneServerException(
           statusCode: statusCode,
           body: body,
           headers: headers,

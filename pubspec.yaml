@@ -1,10 +1,10 @@
-name: jev
-description: An unofficial Dart client for the TypeSafe AI System One (Jev) API.
+name: system_one
+description: An unofficial Dart client for the System One API (TypeSafe AI, Ollama, and other compatible servers).
 version: 0.2.0
 publish_to: none
-repository: https://github.com/andyhorn/jev
+repository: https://github.com/andyhorn/system_one_dart
 executables:
-  jev: jev
+  system_one: system_one
 
 environment:
   sdk: ^3.13.2

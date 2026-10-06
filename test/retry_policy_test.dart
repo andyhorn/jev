@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:jev/src/retry_policy.dart';
+import 'package:system_one/src/retry_policy.dart';
 import 'package:test/test.dart';
 
 /// A [Random] whose `nextDouble` always returns a fixed value, for

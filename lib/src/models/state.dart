@@ -2,49 +2,50 @@
 ///
 /// Mirrors the API's accepted shapes for `state`: plain text, a JSON
 /// object, or a JSON array.
-sealed class JevState {
-  const JevState();
+sealed class SystemOneState {
+  const SystemOneState();
 
   /// Plain text content, e.g. a message or article.
-  const factory JevState.text(String value) = JevStateText;
+  const factory SystemOneState.text(String value) = SystemOneStateText;
 
   /// Structured content, e.g. named fields or a record.
   ///
   /// This is the recommended shape for `state`.
-  const factory JevState.object(Map<String, dynamic> value) = JevStateObject;
+  const factory SystemOneState.object(Map<String, dynamic> value) =
+      SystemOneStateObject;
 
   /// A sequence of content, e.g. a chat log.
-  const factory JevState.array(List<dynamic> value) = JevStateArray;
+  const factory SystemOneState.array(List<dynamic> value) = SystemOneStateArray;
 
   /// Serializes this state into its wire-format JSON representation.
   Object? toJson();
 }
 
-/// A [JevState] holding plain text.
-final class JevStateText extends JevState {
+/// A [SystemOneState] holding plain text.
+final class SystemOneStateText extends SystemOneState {
   final String value;
 
-  const JevStateText(this.value);
+  const SystemOneStateText(this.value);
 
   @override
   Object? toJson() => value;
 }
 
-/// A [JevState] holding a JSON object.
-final class JevStateObject extends JevState {
+/// A [SystemOneState] holding a JSON object.
+final class SystemOneStateObject extends SystemOneState {
   final Map<String, dynamic> value;
 
-  const JevStateObject(this.value);
+  const SystemOneStateObject(this.value);
 
   @override
   Object? toJson() => value;
 }
 
-/// A [JevState] holding a JSON array.
-final class JevStateArray extends JevState {
+/// A [SystemOneState] holding a JSON array.
+final class SystemOneStateArray extends SystemOneState {
   final List<dynamic> value;
 
-  const JevStateArray(this.value);
+  const SystemOneStateArray(this.value);
 
   @override
   Object? toJson() => value;

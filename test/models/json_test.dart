@@ -1,4 +1,4 @@
-import 'package:jev/src/models/json.dart';
+import 'package:system_one/src/models/json.dart';
 import 'package:test/test.dart';
 
 void main() {

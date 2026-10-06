@@ -1,14 +1,15 @@
-import 'package:jev/src/models/question.dart';
-import 'package:jev/src/models/request.dart';
-import 'package:jev/src/models/state.dart';
+import 'package:system_one/src/models/question.dart';
+import 'package:system_one/src/models/request.dart';
+import 'package:system_one/src/models/state.dart';
 import 'package:test/test.dart';
 
 void main() {
   test('toJson produces the full request envelope shape', () {
     final request = SystemOneRequest(
-      state: JevState.text(
+      state: SystemOneState.text(
         "Hi, I've been trying to connect my Stripe account...",
       ),
+      model: 'jev-latest',
       questions: {
         'urgency': NoulQuestion('Does this message express urgency?'),
         'department': ChoiceQuestion(
@@ -54,23 +55,26 @@ void main() {
     });
   });
 
-  test('defaults model to jev-latest when not specified', () {
-    final request = SystemOneRequest(
-      state: JevState.text('some state'),
-      questions: {'urgency': NoulQuestion('Is this urgent?')},
-    );
-
-    expect(request.model, JevModel.latest);
-    expect(request.toJson()['model'], 'jev-latest');
-  });
-
   test('allows overriding the model', () {
     final request = SystemOneRequest(
-      state: JevState.text('some state'),
-      model: JevModel.preview,
+      state: SystemOneState.text('some state'),
+      model: 'jev-preview',
       questions: {'urgency': NoulQuestion('Is this urgent?')},
     );
 
     expect(request.toJson()['model'], 'jev-preview');
+  });
+
+  test('rejects a blank model', () {
+    for (final model in ['', '   ']) {
+      expect(
+        () => SystemOneRequest(
+          state: SystemOneState.text('some state'),
+          model: model,
+          questions: {'urgency': NoulQuestion('Is this urgent?')},
+        ),
+        throwsArgumentError,
+      );
+    }
   });
 }

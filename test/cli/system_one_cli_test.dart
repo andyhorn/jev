@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:jev/src/cli/jev_cli.dart';
-import 'package:jev/src/version.dart';
+import 'package:system_one/src/cli/system_one_cli.dart';
+import 'package:system_one/src/version.dart';
 import 'package:test/test.dart';
 
 class _Result {
@@ -17,19 +17,23 @@ class _Result {
 
 Future<_Result> _run(
   List<String> args, {
-  Map<String, String> environment = const {'TYPESAFE_API_KEY': 'sk-test'},
+  String? model = 'jev-latest',
+  Map<String, String> environment = const {'SYSTEM_ONE_API_KEY': 'sk-test'},
   String stdinText = '',
   http.Client? httpClient,
 }) async {
-  final dir = Directory.systemTemp.createTempSync('jev_cli_run');
+  final dir = Directory.systemTemp.createTempSync('system_one_cli_run');
   addTearDown(() => dir.deleteSync(recursive: true));
   final outFile = File('${dir.path}/out');
   final errFile = File('${dir.path}/err');
   final out = outFile.openWrite();
   final err = errFile.openWrite();
 
-  final code = await runJev(
-    args,
+  final code = await runSystemOne(
+    [
+      if (model != null) ...['--model', model],
+      ...args,
+    ],
     stdin: Stream.value(utf8.encode(stdinText)),
     out: out,
     err: err,
@@ -59,28 +63,27 @@ MockClient _okClient(void Function(http.Request) onRequest) {
 }
 
 void main() {
-  test('--version prints the package version', () async {
-    final result = await _run(['--version']);
+  test('--version prints the package version without --model', () async {
+    final result = await _run(['--version'], model: null);
 
     expect(result.code, 0);
-    expect(result.out.trim(), 'jev $jevVersion');
+    expect(result.out.trim(), 'system_one $systemOneVersion');
   });
 
-  test('--help prints usage', () async {
-    final result = await _run(['--help']);
+  test('--help prints usage without --model', () async {
+    final result = await _run(['--help'], model: null);
 
     expect(result.code, 0);
-    expect(result.out, contains('Usage: jev'));
+    expect(result.out, contains('Usage: system_one'));
   });
 
   test('sends a text state and noul question, then prints answers', () async {
     late http.Request sent;
-    final result = await _run([
-      '--state',
-      'Please hurry!',
-      '--noul',
-      'urgency=Is this urgent?',
-    ], httpClient: _okClient((r) => sent = r));
+    final result = await _run(
+      ['--state', 'Please hurry!', '--noul', 'urgency=Is this urgent?'],
+      model: 'nimble',
+      httpClient: _okClient((r) => sent = r),
+    );
 
     expect(result.code, 0);
     expect(result.out, contains('urgency: yes (p=0.97)'));
@@ -89,7 +92,7 @@ void main() {
     expect(sent.headers['Authorization'], 'Bearer sk-test');
     expect(jsonDecode(sent.body), {
       'state': 'Please hurry!',
-      'model': 'jev-latest',
+      'model': 'nimble',
       'questions': {
         'urgency': {'type': 'noul', 'instructions': 'Is this urgent?'},
       },
@@ -110,7 +113,7 @@ void main() {
 
   test('loads choice and score questions from a questions file', () async {
     late http.Request sent;
-    final dir = Directory.systemTemp.createTempSync('jev_cli_questions');
+    final dir = Directory.systemTemp.createTempSync('system_one_cli_questions');
     addTearDown(() => dir.deleteSync(recursive: true));
     final file = File('${dir.path}/questions.json')
       ..writeAsStringSync(
@@ -143,6 +146,21 @@ void main() {
   });
 
   group('usage errors exit 64', () {
+    test('without --model', () async {
+      final result = await _run(['-s', 'x', '-n', 'a=b'], model: null);
+
+      expect(result.code, 64);
+      expect(result.err, contains('Missing required option --model'));
+      expect(result.err, contains('Usage: system_one'));
+    });
+
+    test('with an empty --model', () async {
+      final result = await _run(['-s', 'x', '-n', 'a=b'], model: '');
+
+      expect(result.code, 64);
+      expect(result.err, contains('Missing required option --model'));
+    });
+
     test('without a state', () async {
       final result = await _run(['-n', 'a=b']);
 
@@ -331,9 +349,9 @@ void main() {
       expect(sent.headers.containsKey('Authorization'), isFalse);
     });
 
-    test('TYPESAFE_BASE_URL is honored, and --base-url wins', () async {
+    test('SYSTEM_ONE_BASE_URL is honored, and --base-url wins', () async {
       late http.Request sent;
-      const env = {'TYPESAFE_BASE_URL': 'http://env.example'};
+      const env = {'SYSTEM_ONE_BASE_URL': 'http://env.example'};
 
       await _run(
         ['-s', 'x', '-n', 'a=b'],
@@ -349,5 +367,24 @@ void main() {
       );
       expect(sent.url.host, 'flag.example');
     });
+
+    test(
+      'the legacy TYPESAFE_API_KEY and TYPESAFE_BASE_URL are ignored',
+      () async {
+        late http.Request sent;
+        final result = await _run(
+          ['-s', 'x', '-n', 'a=b'],
+          environment: const {
+            'TYPESAFE_API_KEY': 'sk-legacy',
+            'TYPESAFE_BASE_URL': 'http://legacy.example',
+          },
+          httpClient: _okClient((r) => sent = r),
+        );
+
+        expect(result.code, 0);
+        expect(sent.url, Uri.parse('https://api.typesafe.ai/v1/systemone'));
+        expect(sent.headers.containsKey('Authorization'), isFalse);
+      },
+    );
   });
 }

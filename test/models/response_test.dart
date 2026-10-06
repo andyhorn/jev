@@ -1,5 +1,5 @@
-import 'package:jev/src/models/answer.dart';
-import 'package:jev/src/models/response.dart';
+import 'package:system_one/src/models/answer.dart';
+import 'package:system_one/src/models/response.dart';
 import 'package:test/test.dart';
 
 void main() {

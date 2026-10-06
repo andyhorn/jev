@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:http/http.dart' as http;
 
-import '../jev_client.dart';
-import '../jev_exception.dart';
+import '../system_one_client.dart';
+import '../system_one_exception.dart';
 import '../models/answer.dart';
 import '../models/question.dart';
 import '../models/request.dart';
@@ -23,12 +23,12 @@ class _UsageError implements Exception {
   _UsageError(this.message);
 }
 
-/// Runs the `jev` command-line interface and returns its process exit code.
+/// Runs the `system_one` command-line interface and returns its process exit code.
 ///
 /// [stdin], [out], [err] and [environment] are injectable so the command can
 /// be exercised without touching the real process; pass [httpClient] to stub
 /// the network.
-Future<int> runJev(
+Future<int> runSystemOne(
   List<String> arguments, {
   required Stream<List<int>> stdin,
   required IOSink out,
@@ -51,19 +51,24 @@ Future<int> runJev(
       return _exitOk;
     }
     if (args.flag('version')) {
-      out.writeln('jev $jevVersion');
+      out.writeln('system_one $systemOneVersion');
       return _exitOk;
+    }
+
+    final model = args.option('model');
+    if (model == null || model.isEmpty) {
+      throw _UsageError('Missing required option --model.');
     }
 
     final request = SystemOneRequest(
       state: await _readState(args, stdin),
-      model: args.option('model')!,
+      model: model,
       questions: await _readQuestions(args),
     );
 
-    final client = JevClient(
-      apiKey: environment['TYPESAFE_API_KEY'],
-      baseUrl: _resolveBaseUrl(args.option('base-url'), environment),
+    final client = SystemOneClient.fromEnvironment(
+      baseUrl: _resolveBaseUrl(args.option('base-url')),
+      environment: environment,
       httpClient: httpClient,
     );
     try {
@@ -79,18 +84,18 @@ Future<int> runJev(
     }
   } on _UsageError catch (e) {
     err
-      ..writeln('jev: ${e.message}')
+      ..writeln('system_one: ${e.message}')
       ..writeln()
       ..writeln(_usage(parser));
     return _exitUsage;
-  } on JevApiException catch (e) {
-    err.writeln('jev: request failed: $e');
+  } on SystemOneApiException catch (e) {
+    err.writeln('system_one: request failed: $e');
     if (e.body != null) {
       err.writeln(e.body is String ? e.body : jsonEncode(e.body));
     }
     return _exitFailure;
-  } on JevException catch (e) {
-    err.writeln('jev: request failed: $e');
+  } on SystemOneException catch (e) {
+    err.writeln('system_one: request failed: $e');
     return _exitFailure;
   }
 }
@@ -132,14 +137,17 @@ ArgParser _buildParser() {
     ..addOption(
       'model',
       abbr: 'm',
-      defaultsTo: JevModel.latest,
-      help: 'The model alias to use.',
+      valueHelp: 'name',
+      help:
+          'The model to use (required), e.g. jev-latest for '
+          'TypeSafe or nimble for Ollama.',
     )
     ..addOption(
       'base-url',
       valueHelp: 'url',
       help:
-          'Override the API base URL (default ${JevClient.defaultBaseUrl}). '
+          'Override the API base URL (default '
+          '${SystemOneClient.defaultBaseUrl}, or SYSTEM_ONE_BASE_URL). '
           'Custom endpoints need no API key.',
     )
     ..addFlag(
@@ -156,39 +164,42 @@ ArgParser _buildParser() {
     );
 }
 
-/// Resolves the endpoint from `--base-url`, then `TYPESAFE_BASE_URL`, then
-/// the hosted default. A custom endpoint does not require an API key.
-Uri? _resolveBaseUrl(String? flag, Map<String, String> environment) {
-  final value = flag ?? environment['TYPESAFE_BASE_URL'];
-  if (value == null || value.isEmpty) {
+/// Resolves the `--base-url` flag; returns null so that
+/// [SystemOneClient.fromEnvironment] applies `SYSTEM_ONE_BASE_URL` or the
+/// hosted default. A custom endpoint does not require an API key.
+Uri? _resolveBaseUrl(String? flag) {
+  if (flag == null || flag.isEmpty) {
     return null;
   }
   final Uri parsed;
   try {
-    parsed = Uri.parse(value);
+    parsed = Uri.parse(flag);
   } on FormatException catch (e) {
-    throw _UsageError('Invalid base URL "$value": ${e.message}');
+    throw _UsageError('Invalid base URL "$flag": ${e.message}');
   }
   if (parsed.scheme != 'http' && parsed.scheme != 'https') {
-    throw _UsageError('Base URL must be an http or https URL, got "$value".');
+    throw _UsageError('Base URL must be an http or https URL, got "$flag".');
   }
   return parsed;
 }
 
 String _usage(ArgParser parser) {
   return '''
-Usage: jev [options]
+Usage: system_one [options]
 
 Asks System One questions about some content.
 
-Sends the TYPESAFE_API_KEY environment variable, when set, as a bearer token.
-A custom --base-url (or TYPESAFE_BASE_URL) endpoint, such as a local server,
+Sends the SYSTEM_ONE_API_KEY environment variable, when set, as a bearer token.
+A custom --base-url (or SYSTEM_ONE_BASE_URL) endpoint, such as a local server,
 needs no key.
 
 ${parser.usage}''';
 }
 
-Future<JevState> _readState(ArgResults args, Stream<List<int>> stdin) async {
+Future<SystemOneState> _readState(
+  ArgResults args,
+  Stream<List<int>> stdin,
+) async {
   final inline = args.option('state');
   final path = args.option('state-file');
   if ((inline == null) == (path == null)) {
@@ -205,13 +216,13 @@ Future<JevState> _readState(ArgResults args, Stream<List<int>> stdin) async {
   }
 
   if (args.option('state-format') == 'text') {
-    return JevState.text(raw);
+    return SystemOneState.text(raw);
   }
 
   final decoded = _decodeJson(raw, 'state');
   return switch (decoded) {
-    Map<String, dynamic>() => JevState.object(decoded),
-    List<dynamic>() => JevState.array(decoded),
+    Map<String, dynamic>() => SystemOneState.object(decoded),
+    List<dynamic>() => SystemOneState.array(decoded),
     _ => throw _UsageError('A JSON state must be an object or an array.'),
   };
 }
