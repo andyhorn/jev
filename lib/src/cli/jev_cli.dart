@@ -76,7 +76,11 @@ Future<int> runJev(
     );
     try {
       final response = await client.systemOne(request);
-      out.write(_formatResponse(response));
+      if (args.flag('json')) {
+        out.writeln(jsonEncode(response.toJson()));
+      } else {
+        out.write(_formatResponse(response));
+      }
       return _exitOk;
     } finally {
       client.close();
@@ -140,6 +144,11 @@ ArgParser _buildParser() {
       help: 'The model alias to use.',
     )
     ..addOption('base-url', hide: true, help: 'Override the API base URL.')
+    ..addFlag(
+      'json',
+      negatable: false,
+      help: 'Print the response as machine-readable JSON.',
+    )
     ..addFlag('version', negatable: false, help: 'Print the version.')
     ..addFlag(
       'help',

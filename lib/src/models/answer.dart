@@ -24,6 +24,12 @@ sealed class Answer {
       _ => throw FormatException('Unrecognized Answer type: $type'),
     };
   }
+
+  /// Serializes this answer into its wire-format JSON representation.
+  ///
+  /// The inverse of [Answer.fromJson]: passing the result back through it
+  /// returns an equivalent answer.
+  Map<String, Object?> toJson();
 }
 
 /// A yes/no answer expressed as a single probability.
@@ -38,6 +44,11 @@ final class NoulAnswer extends Answer {
 
   factory NoulAnswer.fromJson(Map<String, dynamic> json) {
     return NoulAnswer((json['noul'] as num).toDouble());
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    return {'type': 'noul', 'noul': noul};
   }
 }
 
@@ -67,6 +78,16 @@ final class ChoiceAnswer extends Answer {
       confidence: (json['confidence'] as num).toDouble(),
       probabilities: probabilities,
     );
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    return {
+      'type': 'choice',
+      'choice': choice,
+      'confidence': confidence,
+      'probabilities': probabilities,
+    };
   }
 }
 
@@ -107,6 +128,17 @@ final class ScoreAnswer extends Answer {
         (value) => (value as num).toDouble(),
       ),
     );
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    return {
+      'type': 'score',
+      'score': score,
+      'confidence': confidence,
+      'legend': encodeIntKeyedMap(legend, (value) => value),
+      'probabilities': encodeIntKeyedMap(probabilities, (value) => value),
+    };
   }
 
   /// The level index with the highest probability in [probabilities].

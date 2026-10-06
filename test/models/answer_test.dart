@@ -90,4 +90,52 @@ void main() {
 
     expect(() => Answer.fromJson(json), throwsA(isA<FormatException>()));
   });
+
+  group('Answer.toJson', () {
+    test('round-trips the noul wire format', () {
+      final json = {'type': 'noul', 'noul': 0.97};
+
+      expect(Answer.fromJson(json).toJson(), json);
+    });
+
+    test('round-trips the choice wire format', () {
+      final json = {
+        'type': 'choice',
+        'choice': 'shipping',
+        'confidence': 0.82,
+        'probabilities': {'returns': 0.05, 'shipping': 0.82, 'billing': 0.13},
+      };
+
+      expect(Answer.fromJson(json).toJson(), json);
+    });
+
+    test('round-trips the score wire format with string level keys', () {
+      final json = {
+        'type': 'score',
+        'score': 1.43,
+        'confidence': 0.71,
+        'legend': {'0': 'cosmetic', '1': 'workaround', '2': 'blocking'},
+        'probabilities': {'0': 0.12, '1': 0.33, '2': 0.55},
+      };
+
+      expect(Answer.fromJson(json).toJson(), json);
+    });
+
+    test('preserves non-string legend values', () {
+      final answer = ScoreAnswer(
+        score: 2.0,
+        confidence: 0.9,
+        legend: {
+          0: 'cosmetic',
+          1: {'summary': 'blocking issue'},
+        },
+        probabilities: {0: 0.1, 1: 0.9},
+      );
+
+      expect(answer.toJson()['legend'], {
+        '0': 'cosmetic',
+        '1': {'summary': 'blocking issue'},
+      });
+    });
+  });
 }
