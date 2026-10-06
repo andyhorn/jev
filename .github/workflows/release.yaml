@@ -42,17 +42,17 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            asset: jev-linux-x64
+            asset: system_one-linux-x64
           - os: macos-latest
-            asset: jev-macos-arm64
+            asset: system_one-macos-arm64
           - os: windows-latest
-            asset: jev-windows-x64.exe
+            asset: system_one-windows-x64.exe
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: dart-lang/setup-dart@v1
       - run: dart pub get
-      - run: dart compile exe bin/jev.dart -o ${{ matrix.asset }}
+      - run: dart compile exe bin/system_one.dart -o ${{ matrix.asset }}
       - name: Upload to release
         shell: bash
         env:
